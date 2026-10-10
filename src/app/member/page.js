@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2, Navigation } from 'lucide-react';
 import { jetskiUnits, articles as fallbackArticles, watersportServices as fallbackServices } from '@/lib/data';
 import { getServices, getArticles, getPromos } from '@/lib/supabase-data';
 import { supabase } from '@/lib/supabase';
@@ -68,12 +68,12 @@ export default function MemberHome() {
   };
 
   const features = [
+    { name: 'Navigasi', icon: <Navigation size={24} className="text-white" />, href: '/member/navigation', color: 'bg-red-500 shadow-md shadow-red-500/20' },
     { name: 'Pesan Unit', icon: <Waves size={24} className="text-blue-500" />, href: '#booking', color: 'bg-blue-50' },
     { name: 'Lokasi', icon: <MapPin size={24} className="text-rose-500" />, href: '#', color: 'bg-rose-50' },
     { name: 'Reward', icon: <Gift size={24} className="text-amber-500" />, href: '#', color: 'bg-amber-50' },
     { name: 'Pesanan', icon: <Receipt size={24} className="text-emerald-500" />, href: '/member/bookings', color: 'bg-emerald-50' },
     { name: 'Pembayaran', icon: <CreditCard size={24} className="text-violet-500" />, href: '/member/profile/payment', color: 'bg-violet-50' },
-    { name: 'Lainnya', icon: <Sparkles size={24} className="text-gray-400" />, href: '#', color: 'bg-gray-100' },
   ];
 
   return (

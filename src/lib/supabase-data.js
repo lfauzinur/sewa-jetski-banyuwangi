@@ -433,3 +433,69 @@ export async function deleteLoyaltyReward(id) {
   const { error } = await supabase.from('loyalty_rewards').delete().eq('id', id);
   if (error) console.error('deleteReward error:', error); return !error;
 }
+
+// ========================
+// GPS & NAVIGATION
+// ========================
+export async function getGpsRoutes() {
+  const { data, error } = await supabase
+    .from('gps_routes')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getGpsRoutes error:', error); return []; }
+  return data;
+}
+
+export async function upsertGpsRoute(route) {
+  const payload = {
+    name: route.name,
+    description: route.description,
+    color: route.color || '#3B82F6',
+    path_data: route.path_data,
+    active: route.active !== false
+  };
+
+  if (route.id && typeof route.id === 'string' && route.id.includes('-')) {
+    const { data, error } = await supabase.from('gps_routes').update(payload).eq('id', route.id).select().single();
+    if (error) console.error('updateGpsRoute error:', error); return data;
+  } else {
+    const { data, error } = await supabase.from('gps_routes').insert(payload).select().single();
+    if (error) console.error('insertGpsRoute error:', error); return data;
+  }
+}
+
+export async function deleteGpsRoute(id) {
+  const { error } = await supabase.from('gps_routes').delete().eq('id', id);
+  if (error) console.error('deleteGpsRoute error:', error); return !error;
+}
+
+export async function getGpsGeofences() {
+  const { data, error } = await supabase
+    .from('gps_geofences')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getGpsGeofences error:', error); return []; }
+  return data;
+}
+
+export async function upsertGpsGeofence(geofence) {
+  const payload = {
+    name: geofence.name,
+    type: geofence.type || 'warning',
+    polygon_data: geofence.polygon_data,
+    active: geofence.active !== false
+  };
+
+  if (geofence.id && typeof geofence.id === 'string' && geofence.id.includes('-')) {
+    const { data, error } = await supabase.from('gps_geofences').update(payload).eq('id', geofence.id).select().single();
+    if (error) console.error('updateGpsGeofence error:', error); return data;
+  } else {
+    const { data, error } = await supabase.from('gps_geofences').insert(payload).select().single();
+    if (error) console.error('insertGpsGeofence error:', error); return data;
+  }
+}
+
+export async function deleteGpsGeofence(id) {
+  const { error } = await supabase.from('gps_geofences').delete().eq('id', id);
+  if (error) console.error('deleteGpsGeofence error:', error); return !error;
+}
