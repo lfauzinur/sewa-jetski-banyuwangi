@@ -54,35 +54,12 @@ CREATE TABLE public.loyalty_rewards (
 );
 
 -- RLS (Row Level Security) Policies
-ALTER TABLE public.addons ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.booking_addons ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_loyalty ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.loyalty_transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.loyalty_rewards ENABLE ROW LEVEL SECURITY;
-
--- Addons: Bisa dibaca semua orang, admin bisa ubah
-CREATE POLICY "Enable read access for all users" ON public.addons FOR SELECT USING (true);
-CREATE POLICY "Enable all for admin" ON public.addons FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
-
--- Booking Addons: User bisa baca & insert miliknya, admin all
-CREATE POLICY "Enable read access for all users" ON public.booking_addons FOR SELECT USING (true);
-CREATE POLICY "Enable insert for authenticated users" ON public.booking_addons FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Enable all for admin" ON public.booking_addons FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
-
--- User Loyalty: User bisa baca miliknya, admin all
-CREATE POLICY "Enable read for owner" ON public.user_loyalty FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Enable update for owner" ON public.user_loyalty FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Enable insert for owner" ON public.user_loyalty FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Enable all for admin" ON public.user_loyalty FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
-
--- Loyalty Transactions: User baca miliknya, admin all
-CREATE POLICY "Enable read for owner" ON public.loyalty_transactions FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Enable insert for authenticated" ON public.loyalty_transactions FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Enable all for admin" ON public.loyalty_transactions FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
-
--- Loyalty Rewards: Semua baca, admin all
-CREATE POLICY "Enable read access for all users" ON public.loyalty_rewards FOR SELECT USING (true);
-CREATE POLICY "Enable all for admin" ON public.loyalty_rewards FOR ALL USING (auth.uid() IN (SELECT user_id FROM admin_users));
+-- Menonaktifkan RLS sementara agar tidak bentrok dengan mock-authentication (localStorage)
+ALTER TABLE public.addons DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.booking_addons DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_loyalty DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.loyalty_transactions DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.loyalty_rewards DISABLE ROW LEVEL SECURITY;
 
 -- Dummy Data untuk Add-ons (Contoh)
 INSERT INTO public.addons (name, description, price) VALUES 
