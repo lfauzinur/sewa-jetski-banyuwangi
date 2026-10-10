@@ -74,9 +74,18 @@ export default function Footer() {
             <div>
               <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">Layanan</h3>
               <ul className="space-y-3">
-                {['Jetski Adventure', 'Banana Boat', 'Parasailing', 'Snorkeling', 'Flying Fish', 'Paket Combo'].map(service => (
-                  <li key={service}>
-                    <span className="text-gray-400 text-sm">{service}</span>
+                {[
+                  { name: 'Jetski Adventure', href: '/login' },
+                  { name: 'Banana Boat', href: '/layanan/banana-boat' },
+                  { name: 'Parasailing', href: '/layanan/parasailing' },
+                  { name: 'Snorkeling', href: '/layanan/snorkeling' },
+                  { name: 'Flying Fish', href: '/layanan/flying-fish' },
+                  { name: 'Paket Combo', href: '/layanan/paket-combo' },
+                ].map(service => (
+                  <li key={service.name}>
+                    <Link href={service.href} className="text-gray-400 hover:text-cyan-300 text-sm transition-colors duration-200">
+                      {service.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
