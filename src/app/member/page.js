@@ -70,7 +70,7 @@ export default function MemberHome() {
   const features = [
     { name: 'Navigasi', icon: <Navigation size={24} className="text-white" />, href: '/member/navigation', color: 'bg-red-500 shadow-md shadow-red-500/20' },
     { name: 'Pesan Unit', icon: <Waves size={24} className="text-blue-500" />, href: '#booking', color: 'bg-blue-50' },
-    { name: 'Lokasi', icon: <MapPin size={24} className="text-rose-500" />, href: 'https://maps.google.com/?q=Pantai+Boom+Banyuwangi', color: 'bg-rose-50' },
+    { name: 'Lokasi', icon: <MapPin size={24} className="text-rose-500" />, href: '/member/location', color: 'bg-rose-50' },
     { name: 'Reward', icon: <Gift size={24} className="text-amber-500" />, href: '/member/rewards', color: 'bg-amber-50' },
     { name: 'Pesanan', icon: <Receipt size={24} className="text-emerald-500" />, href: '/member/bookings', color: 'bg-emerald-50' },
     { name: 'Pembayaran', icon: <CreditCard size={24} className="text-violet-500" />, href: '/member/profile/payment', color: 'bg-violet-50' },
