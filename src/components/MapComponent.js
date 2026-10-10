@@ -6,6 +6,7 @@ import * as turf from '@turf/turf';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
+import { upsertLiveLocation } from '@/lib/supabase-data';
 
 // Custom icons
 const riderIcon = new L.Icon({
@@ -51,11 +52,27 @@ export default function MapComponent({ selectedRoute, routes, geofences }) {
   const defaultCenter = [-8.204555, 114.385455]; 
 
   useEffect(() => {
+    // Determine the User for Live Tracking (Mock/Auth)
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const mockId = user.id || '99999999-9999-9999-9999-999999999999';
+    const mockName = user.name || 'Anonymous Rider';
+
     // Start tracking
     if ('geolocation' in navigator) {
       const id = navigator.geolocation.watchPosition(
         (pos) => {
           setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          
+          // Push to backend for Admin Live Tracking MVP
+          upsertLiveLocation({
+            user_id: mockId,
+            user_name: mockName,
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            heading: pos.coords.heading || 0,
+            speed: pos.coords.speed || 0,
+            last_updated: new Date().toISOString()
+          }).catch(console.error);
         },
         (err) => {
           console.error("GPS Error:", err);

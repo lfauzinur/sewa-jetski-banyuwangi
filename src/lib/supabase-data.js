@@ -499,3 +499,22 @@ export async function deleteGpsGeofence(id) {
   const { error } = await supabase.from('gps_geofences').delete().eq('id', id);
   if (error) console.error('deleteGpsGeofence error:', error); return !error;
 }
+
+// ========================
+// LIVE TRACKING
+// ========================
+export async function getLiveLocations() {
+  const { data, error } = await supabase
+    .from('live_locations')
+    .select('*');
+  if (error) { console.error('getLiveLocations error:', error); return []; }
+  return data;
+}
+
+export async function upsertLiveLocation(payload) {
+  const { data, error } = await supabase
+    .from('live_locations')
+    .upsert(payload, { onConflict: 'user_id' })
+    .select();
+  if (error) console.error('upsertLiveLocation error:', error); return data;
+}

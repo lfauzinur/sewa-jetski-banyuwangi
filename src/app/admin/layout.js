@@ -14,7 +14,8 @@ import {
   Users,
   Scan,
   PlusSquare,
-  Gift
+  Gift,
+  Map
 } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
@@ -37,6 +38,7 @@ export default function AdminLayout({ children }) {
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: <LayoutDashboard size={20} /> },
+    { name: 'Live Tracking', href: '/admin/live-tracking', icon: <Map size={20} /> },
     { name: 'Scan Tiket', href: '/admin/scanner', icon: <Scan size={20} /> },
     { name: 'Kelola Unit', href: '/admin/units', icon: <Package size={20} /> },
     { name: 'Data Booking', href: '/admin/bookings', icon: <CalendarCheck size={20} /> },

@@ -35,8 +35,8 @@ export default function NavigationPage() {
 
   if (!isMapReady) {
     return (
-      <div className="bg-gray-50 min-h-screen px-6 py-10">
-        <button onClick={() => router.back()} className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 shadow-sm mb-6">
+      <div className="bg-gray-50 min-h-screen px-6 py-10 pb-24">
+        <button onClick={() => router.push('/member')} className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-gray-700 hover:bg-gray-100 shadow-sm mb-6 border border-gray-100">
           <ChevronLeft size={24} />
         </button>
         
@@ -81,11 +81,11 @@ export default function NavigationPage() {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black">
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-black">
       {/* Back Button Floating on Map */}
       <button 
-        onClick={() => setIsMapReady(false)} 
-        className="absolute top-10 left-6 z-[400] w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl shadow-lg flex items-center justify-center text-gray-900"
+        onClick={() => router.push('/member')} 
+        className="absolute top-6 left-6 z-[400] w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center text-gray-900 border border-gray-100 hover:bg-gray-50 transition-colors"
       >
         <ChevronLeft size={24} />
       </button>
