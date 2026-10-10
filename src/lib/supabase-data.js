@@ -518,3 +518,43 @@ export async function upsertLiveLocation(payload) {
     .select();
   if (error) console.error('upsertLiveLocation error:', error); return data;
 }
+
+// ========================
+// BASECAMPS
+// ========================
+export async function getBasecamps() {
+  const { data, error } = await supabase
+    .from('basecamps')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getBasecamps error:', error); return []; }
+  return data;
+}
+
+export async function getActiveBasecamps() {
+  const { data, error } = await supabase
+    .from('basecamps')
+    .select('*')
+    .eq('active', true)
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getActiveBasecamps error:', error); return []; }
+  return data;
+}
+
+export async function createBasecamp(payload) {
+  const { data, error } = await supabase.from('basecamps').insert(payload).select();
+  if (error) console.error('createBasecamp error:', error);
+  return data?.[0] || null;
+}
+
+export async function updateBasecamp(id, payload) {
+  const { data, error } = await supabase.from('basecamps').update(payload).eq('id', id).select();
+  if (error) console.error('updateBasecamp error:', error);
+  return data?.[0] || null;
+}
+
+export async function deleteBasecamp(id) {
+  const { error } = await supabase.from('basecamps').delete().eq('id', id);
+  if (error) console.error('deleteBasecamp error:', error);
+  return !error;
+}
