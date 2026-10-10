@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Phone, ChevronDown } from 'lucide-react';
+import { Menu, X, Phone, LogIn } from 'lucide-react';
 import { COMPANY } from '@/lib/data';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -87,6 +87,10 @@ export default function Navbar() {
                <button onClick={() => toggleLanguage('id')} className={`text-xs font-bold px-2 py-1 rounded transition-colors ${lang === 'id' ? (scrolled ? 'text-[var(--cyan)] bg-[var(--cyan-soft)]' : 'text-cyan-200 bg-white/20') : (scrolled ? 'text-gray-400 hover:text-gray-600' : 'text-white/50 hover:text-white/80')}`}>ID</button>
                <button onClick={() => toggleLanguage('en')} className={`text-xs font-bold px-2 py-1 rounded transition-colors ${lang === 'en' ? (scrolled ? 'text-[var(--cyan)] bg-[var(--cyan-soft)]' : 'text-cyan-200 bg-white/20') : (scrolled ? 'text-gray-400 hover:text-gray-600' : 'text-white/50 hover:text-white/80')}`}>EN</button>
             </div>
+            <Link href="/login" className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-full transition-all duration-200 ${scrolled ? 'text-[var(--teal)] hover:bg-[var(--cyan-soft)]' : 'text-white/90 hover:bg-white/10'}`}>
+              <LogIn size={16} />
+              {lang === 'id' ? 'Masuk' : 'Login'}
+            </Link>
             <Link href="/login" className="btn btn-cyan text-sm px-5 py-2.5">
               {t('nav.bookNow')}
             </Link>
@@ -132,6 +136,14 @@ export default function Navbar() {
             >
               <Phone size={16} /> {COMPANY.phone}
             </a>
+            <Link
+              href="/login"
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-[var(--teal)] hover:bg-[var(--cyan-soft)] font-semibold text-sm transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              <LogIn size={18} />
+              {lang === 'id' ? 'Masuk / Login' : 'Sign In'}
+            </Link>
             <Link
               href="/login"
               className="btn btn-cyan w-full justify-center"
