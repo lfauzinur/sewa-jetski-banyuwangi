@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Calendar, User, LogOut, Anchor } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 function MemberLayoutContent({ children }) {
   const pathname = usePathname();
@@ -11,13 +12,44 @@ function MemberLayoutContent({ children }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) {
-      router.push('/login');
-    } else {
-      setUser(JSON.parse(storedUser));
-      setIsLoaded(true);
-    }
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Fallback check just in case we are mid-migration
+        const local = localStorage.getItem('user');
+        if (!local) router.push('/login');
+        else {
+          setUser(JSON.parse(local));
+          setIsLoaded(true);
+        }
+      } else {
+        setUser({
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          role: 'member',
+          id: session.user.id
+        });
+        setIsLoaded(true);
+      }
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.push('/login');
+      } else {
+        setUser({
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          role: 'member',
+          id: session.user.id
+        });
+        setIsLoaded(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [router]);
 
   const navItems = [

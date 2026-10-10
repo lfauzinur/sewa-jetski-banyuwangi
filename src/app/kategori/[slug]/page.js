@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { watersportCategories, watersportServices, formatCurrency } from '@/lib/data';
 
-export default function CategoryDetail() {
+function CategoryDetailContent() {
   const params = useParams();
   const slug = params?.slug;
   const [category, setCategory] = useState(null);
@@ -145,5 +145,13 @@ export default function CategoryDetail() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CategoryDetail() {
+  return (
+    <Suspense fallback={<div className="min-h-screen pt-24 bg-[var(--bg-secondary)] text-center">Loading...</div>}>
+      <CategoryDetailContent />
+    </Suspense>
   );
 }

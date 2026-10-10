@@ -1,12 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import { articles as fallbackArticles } from '@/lib/data';
 
-export default function MemberArticleDetail() {
+function MemberArticleDetailContent() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug;
@@ -118,5 +118,13 @@ export default function MemberArticleDetail() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MemberArticleDetail() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F8FF] flex items-center justify-center font-sans">Loading...</div>}>
+      <MemberArticleDetailContent />
+    </Suspense>
   );
 }

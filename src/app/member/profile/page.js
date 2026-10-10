@@ -8,21 +8,31 @@ import {
   User, Shield, Lock, CreditCard, 
   HelpCircle, Info, LogOut 
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function MemberProfile() {
   const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) { 
-      router.push('/login'); 
-      return; 
-    }
-    setUser(JSON.parse(storedUser));
-  }, [router]);
+    const fetchUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser({
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          id: session.user.id
+        });
+      } else {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) setUser(JSON.parse(storedUser));
+      }
+    };
+    fetchUser();
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('user');
     router.push('/'); // Redirect to landing page/login
   };

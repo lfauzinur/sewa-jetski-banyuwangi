@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,22 +27,53 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    // Mock register
-    setTimeout(() => {
-      if (formData.name && formData.email && formData.password) {
+    try {
+      if (!formData.name || !formData.email || !formData.password || !formData.phone) {
+        throw new Error('Semua kolom wajib diisi.');
+      }
+
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+            phone: formData.phone,
+            role: 'member',
+          },
+        },
+      });
+
+      if (authError) throw authError;
+
+      // In some Supabase settings, email confirmation is required.
+      // We will assume it signs in immediately or asks for confirmation.
+      if (data.session) {
         localStorage.setItem('user', JSON.stringify({ email: formData.email, name: formData.name, role: 'member' }));
         router.push('/member');
       } else {
-        setError('Semua kolom wajib diisi.');
+        // If email confirmation is required
+        setError('Pendaftaran berhasil! Silakan cek email Anda untuk konfirmasi.');
       }
+    } catch (err) {
+      setError(err.message || 'Gagal mendaftar. Silakan coba lagi.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    // Mock Google SSO
-    localStorage.setItem('user', JSON.stringify({ email: 'user@gmail.com', name: 'Google User', role: 'member' }));
-    router.push('/member');
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/member`
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError(err.message || 'Gagal login dengan Google');
+    }
   };
 
   return (

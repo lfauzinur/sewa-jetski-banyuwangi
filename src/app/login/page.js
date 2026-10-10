@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,22 +18,38 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    // Mock login — will be replaced with Supabase
-    setTimeout(() => {
-      if (email && password) {
-        localStorage.setItem('user', JSON.stringify({ email, name: email.split('@')[0], role: 'member' }));
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      if (data.session) {
+        // Just as a fallback for some existing UI parts that might still read this before full migration
+        localStorage.setItem('user', JSON.stringify({ email: data.user.email, name: data.user.email.split('@')[0], role: 'member' }));
         router.push('/member');
-      } else {
-        setError('Email dan password wajib diisi.');
       }
+    } catch (err) {
+      setError(err.message || 'Login gagal. Periksa kembali email dan password Anda.');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    // Mock Google SSO
-    localStorage.setItem('user', JSON.stringify({ email: 'user@gmail.com', name: 'Google User', role: 'member' }));
-    router.push('/member');
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/member`
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError(err.message || 'Gagal login dengan Google');
+    }
   };
 
   return (
