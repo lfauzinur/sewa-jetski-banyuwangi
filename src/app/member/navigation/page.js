@@ -85,14 +85,14 @@ export default function NavigationPage() {
       {/* Back Button Floating on Map */}
       <button 
         onClick={() => router.push('/member')} 
-        className="absolute top-6 left-6 z-[400] w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center text-gray-900 border border-gray-100 hover:bg-gray-50 transition-colors"
+        className="absolute top-12 left-4 z-[9999] w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center text-gray-900 border border-gray-100 hover:bg-gray-50 transition-colors"
       >
         <ChevronLeft size={24} />
       </button>
 
       {/* Info Panel Floating */}
       {selectedRoute && (
-        <div className="absolute top-10 left-24 right-6 z-[400] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg px-4 py-3 border border-white">
+        <div className="absolute top-12 left-20 right-4 z-[9999] bg-white/90 backdrop-blur-md rounded-2xl shadow-lg px-4 py-3 border border-white">
           <p className="text-[10px] font-bold text-[var(--royal)] uppercase tracking-wide">Navigasi Aktif</p>
           <p className="text-sm font-black text-gray-900 truncate">{selectedRoute.name}</p>
         </div>

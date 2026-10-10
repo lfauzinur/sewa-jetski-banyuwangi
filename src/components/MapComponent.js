@@ -146,7 +146,7 @@ export default function MapComponent({ selectedRoute, routes, geofences }) {
 
       {/* Warning Overlay */}
       {geofenceAlert && (
-        <div className="absolute inset-0 z-[400] pointer-events-none flex items-center justify-center bg-red-600/30 animate-pulse">
+        <div className="absolute inset-0 z-[9999] pointer-events-none flex items-center justify-center bg-red-600/30 animate-pulse">
           <div className="bg-white px-6 py-4 rounded-3xl shadow-2xl flex flex-col items-center">
             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-3">
               <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,7 +163,7 @@ export default function MapComponent({ selectedRoute, routes, geofences }) {
       {/* SOS Button */}
       <button 
         onClick={handleSOS}
-        className="absolute bottom-10 right-6 z-[400] w-16 h-16 bg-red-600 text-white rounded-full shadow-[0_10px_25px_rgba(220,38,38,0.5)] flex items-center justify-center border-4 border-white active:scale-95 transition-transform"
+        className="absolute bottom-10 right-6 z-[9999] w-16 h-16 bg-red-600 text-white rounded-full shadow-[0_10px_25px_rgba(220,38,38,0.5)] flex items-center justify-center border-4 border-white active:scale-95 transition-transform"
       >
         <span className="font-black text-lg">SOS</span>
       </button>
