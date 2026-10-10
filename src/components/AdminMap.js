@@ -8,8 +8,9 @@ import 'leaflet-defaulticon-compatibility';
 import { getLiveLocations, getGpsGeofences, getGpsRoutes } from '@/lib/supabase-data';
 import { supabase } from '@/lib/supabase';
 
-const riderIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3753/3753641.png', // Jetski icon
+const riderIcon = new L.divIcon({
+  html: '<div style="font-size: 16px; background: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid #EF4444;">🏄‍♂️</div>',
+  className: '',
   iconSize: [30, 30],
   iconAnchor: [15, 15]
 });

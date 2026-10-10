@@ -8,11 +8,12 @@ import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import 'leaflet-defaulticon-compatibility';
 import { upsertLiveLocation } from '@/lib/supabase-data';
 
-// Custom icons
-const riderIcon = new L.Icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3753/3753641.png', // Jetski icon placeholder
-  iconSize: [40, 40],
-  iconAnchor: [20, 20]
+// Custom icons (Menggunakan DivIcon dengan emoji berselancar/jetski agar stabil tanpa external link)
+const riderIcon = new L.divIcon({
+  html: '<div style="font-size: 20px; background: white; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid #3B82F6;">🏄‍♂️</div>',
+  className: '',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18]
 });
 
 // Component to handle tracking and map centering
