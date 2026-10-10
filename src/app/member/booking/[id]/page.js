@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { jetskiUnits, watersportServices, timeSlots, generateBookingId } from '@/lib/data';
+import { getAddons } from '@/lib/supabase-data';
 
 const generateCalendar = () => {
   const today = new Date();
@@ -38,6 +39,8 @@ export default function BookingPage({ params }) {
   const [selectedLocation, setSelectedLocation] = useState('Pantai Boom');
   const [isProcessing, setIsProcessing] = useState(false);
   const [unit, setUnit] = useState(null);
+  const [addons, setAddons] = useState([]);
+  const [selectedAddons, setSelectedAddons] = useState([]);
   
   useEffect(() => {
     const unwrapParams = async () => {
@@ -64,6 +67,12 @@ export default function BookingPage({ params }) {
       const firstAvailable = cal.days.find(d => d && d.isAvailable);
       if (firstAvailable) setSelectedDate(firstAvailable.fullDate);
     }
+    
+    const fetchAddonsData = async () => {
+      const dbAddons = await getAddons();
+      setAddons(dbAddons.filter(a => a.active));
+    };
+    fetchAddonsData();
   }, [params]);
 
   if (!unit) return null;
@@ -74,8 +83,9 @@ export default function BookingPage({ params }) {
 
     setTimeout(() => {
       const basePrice = unit.price || unit.pricePerSlot;
+      const addonsPrice = selectedAddons.reduce((sum, addon) => sum + (addon.price * addon.quantity), 0);
       const uniqueCode = Math.floor(Math.random() * 900) + 100;
-      const totalPrice = basePrice + uniqueCode;
+      const totalPrice = basePrice + addonsPrice + uniqueCode;
 
       const user = JSON.parse(localStorage.getItem('user') || '{"name":"Guest","email":"guest@example.com","phone":"-"}');
       const bookingData = {
@@ -88,6 +98,8 @@ export default function BookingPage({ params }) {
         date: selectedDate,
         timeSlot: timeSlots.find(t => t.id === selectedTime)?.time,
         basePrice,
+        addons: selectedAddons,
+        addonsPrice,
         uniqueCode,
         totalPrice,
         status: 'pending_payment',
@@ -105,6 +117,21 @@ export default function BookingPage({ params }) {
     const isBooked = (dateNum + parseInt(slotId.split('-')[1])) % 7 === 0; // Mock booked slots
     return isBooked ? 'booked' : 'available';
   };
+
+  const toggleAddon = (addon) => {
+    setSelectedAddons(prev => {
+      const exists = prev.find(a => a.id === addon.id);
+      if (exists) {
+        return prev.filter(a => a.id !== addon.id);
+      } else {
+        return [...prev, { ...addon, quantity: 1 }];
+      }
+    });
+  };
+
+  const currentBasePrice = unit.price || unit.pricePerSlot;
+  const currentAddonsPrice = selectedAddons.reduce((sum, a) => sum + (a.price * a.quantity), 0);
+  const currentTotal = currentBasePrice + currentAddonsPrice;
 
   return (
     <div className="bg-white min-h-screen pb-32">
@@ -249,12 +276,42 @@ export default function BookingPage({ params }) {
         </div>
       </div>
 
+      {/* Add-ons Section */}
+      {addons.length > 0 && (
+        <div className="px-6 mb-10">
+          <h2 className="font-bold text-gray-900 text-base mb-4">Tambahan (Add-ons)</h2>
+          <div className="space-y-3">
+            {addons.map(addon => {
+              const isSelected = selectedAddons.some(a => a.id === addon.id);
+              return (
+                <div 
+                  key={addon.id} 
+                  onClick={() => toggleAddon(addon)}
+                  className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${
+                    isSelected ? 'border-[var(--royal)] bg-[#F0F5FF]' : 'border-gray-100 bg-white hover:border-gray-200'
+                  }`}
+                >
+                  <div>
+                    <h3 className={`text-sm font-bold ${isSelected ? 'text-[var(--royal)]' : 'text-gray-900'}`}>{addon.name}</h3>
+                    <p className="text-xs text-gray-500 mt-1 max-w-[200px]">{addon.description}</p>
+                    <p className="text-xs font-bold text-amber-500 mt-1">+Rp {addon.price.toLocaleString('id-ID')}</p>
+                  </div>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[var(--royal)] bg-[var(--royal)] text-white' : 'border-gray-300'}`}>
+                    {isSelected && <CheckCircle2 size={14} />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Floating Bottom Bar - Dribbble Style */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl p-6 pt-4 z-40 sm:w-[400px] sm:left-1/2 sm:-ml-[200px] sm:absolute sm:rounded-b-[40px]">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl p-6 pt-4 z-40 sm:w-[400px] sm:left-1/2 sm:-ml-[200px] sm:absolute sm:rounded-b-[40px] shadow-[0_-10px_20px_rgba(0,0,0,0.05)] border-t border-gray-100">
         <div className="mb-4">
-          <p className="text-xs font-bold text-gray-600 mb-0.5">Your Fair</p>
+          <p className="text-xs font-bold text-gray-600 mb-0.5">Total Fair</p>
           <p className="text-3xl font-black text-amber-500 tracking-tight">
-            Rp {(unit.price || unit.pricePerSlot).toLocaleString('id-ID')}
+            Rp {currentTotal.toLocaleString('id-ID')}
           </p>
         </div>
         

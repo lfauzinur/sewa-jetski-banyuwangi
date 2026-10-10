@@ -270,3 +270,166 @@ export async function updateBookingStatus(id, status) {
   if (error) { console.error('updateBookingStatus error:', error); return null; }
   return data;
 }
+
+// ========================
+// ADD-ONS
+// ========================
+export async function getAddons() {
+  const { data, error } = await supabase
+    .from('addons')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) { console.error('getAddons error:', error); return []; }
+  return data;
+}
+
+export async function upsertAddon(addon) {
+  const payload = {
+    name: addon.name,
+    description: addon.description,
+    price: parseInt(addon.price) || 0,
+    active: addon.active !== false
+  };
+
+  if (addon.id && typeof addon.id === 'string' && addon.id.includes('-')) {
+    const { data, error } = await supabase.from('addons').update(payload).eq('id', addon.id).select().single();
+    if (error) console.error('updateAddon error:', error); return data;
+  } else {
+    const { data, error } = await supabase.from('addons').insert(payload).select().single();
+    if (error) console.error('insertAddon error:', error); return data;
+  }
+}
+
+export async function deleteAddon(id) {
+  const { error } = await supabase.from('addons').delete().eq('id', id);
+  if (error) console.error('deleteAddon error:', error); return !error;
+}
+
+// ========================
+// LOYALTY (JETPASS)
+// ========================
+export async function getUserLoyalty(userId) {
+  if (!userId) return null;
+  const { data, error } = await supabase
+    .from('user_loyalty')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') { // not found is okay
+    console.error('getUserLoyalty error:', error); 
+  }
+  return data || { points_balance: 0, lifetime_points: 0 };
+}
+
+export async function addLoyaltyPoints(userId, amount, description, bookingId = null) {
+  if (!userId || amount <= 0) return false;
+  
+  // Get current loyalty
+  let current = await getUserLoyalty(userId);
+  let isNew = false;
+  if (!current.user_id) {
+    isNew = true;
+  }
+
+  const newBalance = current.points_balance + amount;
+  const newLifetime = current.lifetime_points + amount;
+
+  // Update or Insert loyalty balance
+  if (isNew) {
+    await supabase.from('user_loyalty').insert({
+      user_id: userId,
+      points_balance: newBalance,
+      lifetime_points: newLifetime
+    });
+  } else {
+    await supabase.from('user_loyalty').update({
+      points_balance: newBalance,
+      lifetime_points: newLifetime,
+      updated_at: new Date().toISOString()
+    }).eq('user_id', userId);
+  }
+
+  // Insert transaction history
+  await supabase.from('loyalty_transactions').insert({
+    user_id: userId,
+    type: 'earn',
+    amount: amount,
+    description: description,
+    booking_id: bookingId
+  });
+
+  return true;
+}
+
+export async function redeemLoyaltyPoints(userId, amount, description, bookingId = null) {
+  if (!userId || amount <= 0) return false;
+  
+  let current = await getUserLoyalty(userId);
+  if (!current.user_id || current.points_balance < amount) return false; // Not enough points
+
+  const newBalance = current.points_balance - amount;
+
+  // Update balance
+  await supabase.from('user_loyalty').update({
+    points_balance: newBalance,
+    updated_at: new Date().toISOString()
+  }).eq('user_id', userId);
+
+  // Insert transaction
+  await supabase.from('loyalty_transactions').insert({
+    user_id: userId,
+    type: 'redeem',
+    amount: amount,
+    description: description,
+    booking_id: bookingId
+  });
+
+  return true;
+}
+
+export async function getLoyaltyTransactions(userId) {
+  const { data, error } = await supabase
+    .from('loyalty_transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error) { console.error('getLoyaltyTransactions error:', error); return []; }
+  return data;
+}
+
+// ========================
+// REWARDS
+// ========================
+export async function getLoyaltyRewards() {
+  const { data, error } = await supabase
+    .from('loyalty_rewards')
+    .select('*')
+    .eq('active', true)
+    .order('points_required', { ascending: true });
+  if (error) { console.error('getLoyaltyRewards error:', error); return []; }
+  return data;
+}
+
+export async function upsertLoyaltyReward(reward) {
+  const payload = {
+    name: reward.name,
+    type: reward.type,
+    value: parseInt(reward.value) || 0,
+    points_required: parseInt(reward.points_required) || 0,
+    active: reward.active !== false
+  };
+
+  if (reward.id && typeof reward.id === 'string' && reward.id.includes('-')) {
+    const { data, error } = await supabase.from('loyalty_rewards').update(payload).eq('id', reward.id).select().single();
+    if (error) console.error('updateReward error:', error); return data;
+  } else {
+    const { data, error } = await supabase.from('loyalty_rewards').insert(payload).select().single();
+    if (error) console.error('insertReward error:', error); return data;
+  }
+}
+
+export async function deleteLoyaltyReward(id) {
+  const { error } = await supabase.from('loyalty_rewards').delete().eq('id', id);
+  if (error) console.error('deleteReward error:', error); return !error;
+}

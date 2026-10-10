@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Wallet, Building2, QrCode, Copy, CheckCircle2, ChevronRight, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/data';
+import { getUserLoyalty, getLoyaltyRewards, redeemLoyaltyPoints, addLoyaltyPoints } from '@/lib/supabase-data';
 
 function PaymentContent() {
   const router = useRouter();
@@ -11,6 +12,10 @@ function PaymentContent() {
   const [method, setMethod] = useState('transfer'); // 'transfer' or 'qris'
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loyalty, setLoyalty] = useState({ points_balance: 0 });
+  const [rewards, setRewards] = useState([]);
+  const [selectedReward, setSelectedReward] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const checkoutData = localStorage.getItem('current_checkout');
@@ -19,6 +24,18 @@ function PaymentContent() {
       return;
     }
     setBooking(JSON.parse(checkoutData));
+
+    const loadLoyalty = async () => {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user && user.id) {
+        setCurrentUser(user);
+        const l = await getUserLoyalty(user.id);
+        if (l) setLoyalty(l);
+      }
+      const r = await getLoyaltyRewards();
+      setRewards(r);
+    };
+    loadLoyalty();
   }, [router]);
 
   if (!booking) return null;
@@ -29,18 +46,51 @@ function PaymentContent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     setIsProcessing(true);
+    
+    // Process reward redemption if selected
+    let rewardApplied = null;
+    if (selectedReward && currentUser) {
+      const r = rewards.find(rw => rw.id === selectedReward);
+      if (r) {
+        rewardApplied = r;
+        await redeemLoyaltyPoints(currentUser.id, r.points_required, `Redeem: ${r.name}`, booking.id);
+      }
+    }
+
+    // Process earning points (e.g. 1 point for every Rp 50,000 spent)
+    if (currentUser) {
+      const earnPoints = Math.floor(finalPrice / 50000);
+      if (earnPoints > 0) {
+        await addLoyaltyPoints(currentUser.id, earnPoints, `Earn points from booking ${booking.unit}`, booking.id);
+      }
+    }
+
     setTimeout(() => {
       // Move from checkout to bookings
       const existing = JSON.parse(localStorage.getItem('admin_bookings') || '[]');
-      const finalBooking = { ...booking, status: 'waiting_confirmation' };
+      const finalBooking = { 
+        ...booking, 
+        totalPrice: finalPrice,
+        reward_applied: rewardApplied ? rewardApplied.name : null,
+        status: 'waiting_confirmation' 
+      };
       localStorage.setItem('admin_bookings', JSON.stringify([finalBooking, ...existing]));
       localStorage.removeItem('current_checkout');
       
       router.push(`/member/booking/success?id=${booking.id}`);
     }, 1500);
   };
+
+  const getActiveReward = () => {
+    if (!selectedReward) return null;
+    return rewards.find(r => r.id === selectedReward);
+  };
+
+  const activeReward = getActiveReward();
+  const discountAmount = activeReward && activeReward.type === 'discount' ? activeReward.value : 0;
+  const finalPrice = Math.max(0, booking.totalPrice - discountAmount);
 
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
@@ -58,13 +108,54 @@ function PaymentContent() {
         <div className="bg-white rounded-[24px] p-6 shadow-sm text-center border border-gray-100">
           <p className="text-gray-500 text-sm font-semibold mb-2">Total Pembayaran</p>
           <h2 className="text-4xl font-black text-[var(--royal)] mb-2 tracking-tight">
-            Rp {(booking.totalPrice).toLocaleString('id-ID')}
+            Rp {finalPrice.toLocaleString('id-ID')}
           </h2>
-          <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-xs font-bold text-left">
-            <AlertCircle size={14} />
-            Termasuk kode unik *{booking.uniqueCode} untuk verifikasi
+          <div className="inline-flex flex-col gap-2 items-center text-left">
+            <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-xs font-bold">
+              <AlertCircle size={14} />
+              Termasuk kode unik *{booking.uniqueCode} untuk verifikasi
+            </div>
+            {discountAmount > 0 && (
+              <div className="text-emerald-500 text-sm font-bold mt-1">
+                - Rp {discountAmount.toLocaleString('id-ID')} (Diskon Poin)
+              </div>
+            )}
+            {activeReward && activeReward.type === 'duration' && (
+              <div className="text-emerald-500 text-sm font-bold mt-1">
+                + Tambahan waktu {activeReward.value} Menit
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Loyalty Reward Selection */}
+        {currentUser && rewards.length > 0 && (
+          <div>
+            <h3 className="font-bold text-gray-900 text-base mb-3 px-1 flex justify-between items-center">
+              <span>JetPass Poin Anda</span>
+              <span className="text-amber-500">{loyalty.points_balance} Poin</span>
+            </h3>
+            <div className="bg-white rounded-[20px] p-4 shadow-sm border border-gray-100">
+              <p className="text-xs text-gray-500 mb-3">Tukarkan poin Anda dengan hadiah atau diskon tambahan.</p>
+              <select
+                value={selectedReward}
+                onChange={(e) => setSelectedReward(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[var(--royal)] outline-none"
+              >
+                <option value="">Pilih hadiah untuk ditukar (Opsional)</option>
+                {rewards.map(r => (
+                  <option 
+                    key={r.id} 
+                    value={r.id} 
+                    disabled={loyalty.points_balance < r.points_required}
+                  >
+                    {r.name} ({r.points_required} Poin)
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Payment Methods */}
         <div>
@@ -147,7 +238,7 @@ function PaymentContent() {
               <ul className="text-xs text-gray-500 space-y-2 list-disc pl-4 text-left">
                 <li>Buka aplikasi m-banking atau e-wallet Anda.</li>
                 <li>Pilih menu scan QRIS.</li>
-                <li>Pastikan nominal tepat <strong className="text-gray-900">Rp {(booking.totalPrice).toLocaleString('id-ID')}</strong>.</li>
+                <li>Pastikan nominal tepat <strong className="text-gray-900">Rp {finalPrice.toLocaleString('id-ID')}</strong>.</li>
               </ul>
             </div>
           )}

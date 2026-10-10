@@ -12,7 +12,9 @@ import {
   Menu,
   X,
   Users,
-  Scan
+  Scan,
+  PlusSquare,
+  Gift
 } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
@@ -39,6 +41,8 @@ export default function AdminLayout({ children }) {
     { name: 'Kelola Unit', href: '/admin/units', icon: <Package size={20} /> },
     { name: 'Data Booking', href: '/admin/bookings', icon: <CalendarCheck size={20} /> },
     { name: 'Data Member', href: '/admin/members', icon: <Users size={20} /> },
+    { name: 'Kelola Add-ons', href: '/admin/addons', icon: <PlusSquare size={20} /> },
+    { name: 'Reward Poin', href: '/admin/rewards', icon: <Gift size={20} /> },
     { name: 'Konten CMS', href: '/admin/content', icon: <FileEdit size={20} /> },
     { name: 'Pengaturan', href: '/admin/settings', icon: <Settings size={20} /> },
   ];
