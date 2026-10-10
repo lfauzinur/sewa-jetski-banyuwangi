@@ -3,19 +3,21 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, Phone, ChevronDown } from 'lucide-react';
 import { COMPANY } from '@/lib/data';
+import { useLanguage } from '@/context/LanguageContext';
 
 const navLinks = [
-  { href: '/', label: 'Beranda' },
-  { href: '/#layanan', label: 'Layanan' },
-  { href: '/#galeri', label: 'Galeri' },
-  { href: '/#testimoni', label: 'Testimoni' },
-  { href: '/#artikel', label: 'Artikel' },
-  { href: '/#kontak', label: 'Kontak' },
+  { href: '/', key: 'home' },
+  { href: '/#layanan', key: 'services' },
+  { href: '/#galeri', key: 'gallery' },
+  { href: '/#testimoni', key: 'testimonials' },
+  { href: '/#artikel', key: 'articles' },
+  { href: '/#kontak', key: 'contact' },
 ];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { lang, toggleLanguage, t } = useLanguage();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -65,7 +67,7 @@ export default function Navbar() {
                     : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
               >
-                {link.label}
+                {t(`nav.${link.key}`)}
               </Link>
             ))}
           </div>
@@ -82,11 +84,11 @@ export default function Navbar() {
               <span className="hidden xl:inline">{COMPANY.phone}</span>
             </a>
             <div className={`flex items-center gap-1 px-2 border-l border-r border-white/20 mx-1 ${scrolled ? 'border-gray-200' : ''}`}>
-               <button className={`text-xs font-bold px-2 py-1 rounded transition-colors ${scrolled ? 'text-[var(--cyan)] bg-[var(--cyan-soft)]' : 'text-cyan-200 bg-white/20'}`}>ID</button>
-               <button onClick={() => alert('Maaf, fitur terjemahan (Bahasa Inggris) sedang dalam tahap pengembangan.')} className={`text-xs font-bold px-2 py-1 rounded transition-colors ${scrolled ? 'text-gray-400 hover:text-gray-600' : 'text-white/50 hover:text-white/80'}`}>EN</button>
+               <button onClick={() => toggleLanguage('id')} className={`text-xs font-bold px-2 py-1 rounded transition-colors ${lang === 'id' ? (scrolled ? 'text-[var(--cyan)] bg-[var(--cyan-soft)]' : 'text-cyan-200 bg-white/20') : (scrolled ? 'text-gray-400 hover:text-gray-600' : 'text-white/50 hover:text-white/80')}`}>ID</button>
+               <button onClick={() => toggleLanguage('en')} className={`text-xs font-bold px-2 py-1 rounded transition-colors ${lang === 'en' ? (scrolled ? 'text-[var(--cyan)] bg-[var(--cyan-soft)]' : 'text-cyan-200 bg-white/20') : (scrolled ? 'text-gray-400 hover:text-gray-600' : 'text-white/50 hover:text-white/80')}`}>EN</button>
             </div>
             <Link href="/login" className="btn btn-cyan text-sm px-5 py-2.5">
-              BOOK NOW
+              {t('nav.bookNow')}
             </Link>
           </div>
 
@@ -116,13 +118,13 @@ export default function Navbar() {
               onClick={() => setIsOpen(false)}
               className="block px-4 py-3 rounded-xl text-gray-700 hover:bg-[var(--cyan-soft)] hover:text-[var(--teal)] font-semibold text-sm transition-colors"
             >
-              {link.label}
+              {t(`nav.${link.key}`)}
             </Link>
           ))}
           <div className="pt-4 border-t border-gray-100 mt-4 space-y-3">
             <div className="flex items-center gap-2 px-4 py-2">
-               <button className="text-xs font-bold px-3 py-1.5 rounded bg-[var(--cyan-soft)] text-[var(--cyan)]">ID (Indonesia)</button>
-               <button onClick={() => alert('Maaf, fitur terjemahan (Bahasa Inggris) sedang dalam tahap pengembangan.')} className="text-xs font-bold px-3 py-1.5 rounded text-gray-400 hover:bg-gray-50">EN (English)</button>
+               <button onClick={() => toggleLanguage('id')} className={`text-xs font-bold px-3 py-1.5 rounded ${lang === 'id' ? 'bg-[var(--cyan-soft)] text-[var(--cyan)]' : 'text-gray-400 hover:bg-gray-50'}`}>ID (Indonesia)</button>
+               <button onClick={() => toggleLanguage('en')} className={`text-xs font-bold px-3 py-1.5 rounded ${lang === 'en' ? 'bg-[var(--cyan-soft)] text-[var(--cyan)]' : 'text-gray-400 hover:bg-gray-50'}`}>EN (English)</button>
             </div>
             <a
               href={`tel:${COMPANY.phone}`}
@@ -135,7 +137,7 @@ export default function Navbar() {
               className="btn btn-cyan w-full justify-center"
               onClick={() => setIsOpen(false)}
             >
-              BOOK NOW
+              {t('nav.bookNow')}
             </Link>
           </div>
         </div>

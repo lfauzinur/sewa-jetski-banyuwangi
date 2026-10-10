@@ -1,5 +1,6 @@
 import "./globals.css";
 import { COMPANY } from "@/lib/data";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata = {
   title: `${COMPANY.name} — Sewa Jetski & Watersport Terbaik di Banyuwangi`,
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className="antialiased">
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

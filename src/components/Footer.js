@@ -2,8 +2,10 @@
 import Link from 'next/link';
 import { MapPin, Phone, Mail } from 'lucide-react';
 import { COMPANY } from '@/lib/data';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function Footer() {
+  const { t } = useLanguage();
   return (
     <footer id="kontak" className="relative overflow-hidden">
       {/* Wave Top */}
@@ -29,7 +31,7 @@ export default function Footer() {
                 </div>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                Penyedia layanan Jetski dan Watersport premium di Banyuwangi, Banyuwangi. Pengalaman terbaik dengan harga terjangkau.
+                {t('footer.desc')}
               </p>
               <div className="flex gap-3">
                 <a href={COMPANY.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-[var(--cyan)] transition-all duration-300">
@@ -52,18 +54,18 @@ export default function Footer() {
 
             {/* Quick Links */}
             <div>
-              <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">Menu</h3>
+              <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">{t('footer.quickLinks')}</h3>
               <ul className="space-y-3">
                 {[
-                  { href: '/', label: 'Beranda' },
-                  { href: '/#layanan', label: 'Layanan' },
-                  { href: '/#galeri', label: 'Galeri' },
-                  { href: '/#artikel', label: 'Artikel' },
-                  { href: '/login', label: 'Login / Register' },
+                  { href: '/', key: 'home' },
+                  { href: '/#layanan', key: 'services' },
+                  { href: '/#galeri', key: 'gallery' },
+                  { href: '/#artikel', key: 'articles' },
+                  { href: '/login', key: 'login' },
                 ].map(link => (
                   <li key={link.href}>
                     <Link href={link.href} className="text-gray-400 hover:text-cyan-300 text-sm transition-colors duration-200">
-                      {link.label}
+                      {t(`nav.${link.key}`)}
                     </Link>
                   </li>
                 ))}
@@ -72,7 +74,7 @@ export default function Footer() {
 
             {/* Services */}
             <div>
-              <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">Layanan</h3>
+              <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">{t('footer.services')}</h3>
               <ul className="space-y-3">
                 {[
                   { name: 'Jetski Adventure', href: '/login' },
@@ -93,7 +95,7 @@ export default function Footer() {
 
             {/* Contact */}
             <div>
-              <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">Kontak</h3>
+              <h3 className="font-bold text-white text-sm uppercase tracking-wider mb-6">{t('footer.contact')}</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <MapPin size={18} className="text-cyan-400 mt-0.5 flex-shrink-0" />
@@ -114,7 +116,7 @@ export default function Footer() {
           {/* Copyright */}
           <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-gray-500 text-xs">
-              © 2026 {COMPANY.name}. All rights reserved.
+              © 2026 {COMPANY.name}. {t('footer.rights')}.
             </p>
             <div className="flex gap-6 text-xs text-gray-500">
               <Link href="#" className="hover:text-gray-300 transition-colors">Kebijakan Privasi</Link>

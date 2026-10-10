@@ -14,11 +14,13 @@ import {
   formatCurrency, formatDate
 } from '@/lib/data';
 import { getCategories, getArticles, getPromos } from '@/lib/supabase-data';
+import { useLanguage } from '@/context/LanguageContext';
 
 /* ═══════════════════════════════════════
    HERO SECTION
    ═══════════════════════════════════════ */
 function HeroSection() {
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background Image */}
@@ -43,37 +45,36 @@ function HeroSection() {
           <div className="animate-fade-in-up">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-cyan-200 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider mb-6 border border-white/20">
               <Sparkles size={14} />
-              <span>#1 Watersport Banyuwangi</span>
+              <span>{t('hero.subtitle')}</span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-[1.1] mb-6">
-              Rasakan Sensasi
+              {t('hero.title1')}
               <br />
               <span className="text-gradient-ocean" style={{ WebkitTextFillColor: 'transparent', background: 'linear-gradient(135deg, #90E0EF 0%, #00B4D8 50%, #FCD34D 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text' }}>
-                Jetski Adventure
+                {t('hero.title2')}
               </span>
               <br />
-              di Banyuwangi
+              {t('hero.title3')}
             </h1>
             <p className="text-white/70 text-lg max-w-lg mb-8 leading-relaxed">
-              Nikmati pengalaman watersport premium di perairan jernih Banyuwangi. 
-              Guide profesional, unit terawat, dan harga terbaik menanti Anda!
+              {t('hero.desc')}
             </p>
 
             <div className="flex flex-wrap gap-4 mb-12">
               <Link href="/login" className="btn btn-cyan text-base px-8 py-3.5 shadow-lg">
-                <Calendar size={18} /> BOOK NOW
+                <Calendar size={18} /> {t('hero.btnBook')}
               </Link>
               <Link href="/#layanan" className="btn btn-outline-white text-base px-8 py-3.5">
-                Lihat Layanan
+                {t('hero.btnServices')}
               </Link>
             </div>
 
             {/* Trust Badges */}
             <div className="flex flex-wrap gap-6">
               {[
-                { icon: <Shield size={20} />, label: 'Asuransi', sub: 'Full Coverage' },
-                { icon: <Award size={20} />, label: 'Best Guide', sub: 'Bersertifikat' },
-                { icon: <Star size={20} />, label: '4.9 Rating', sub: '500+ Review' },
+                { icon: <Shield size={20} />, label: t('hero.badges.insurance'), sub: t('hero.badges.insuranceSub') },
+                { icon: <Award size={20} />, label: t('hero.badges.guide'), sub: t('hero.badges.guideSub') },
+                { icon: <Star size={20} />, label: t('hero.badges.rating'), sub: t('hero.badges.ratingSub') },
               ].map((badge, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-cyan-300 border border-white/10">
@@ -97,7 +98,7 @@ function HeroSection() {
                   <MapPin size={22} className="text-[var(--cyan)]" />
                 </div>
                 <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Lokasi</span>
+                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{t('hero.location')}</span>
                   <p className="font-bold text-gray-900 text-sm">Banyuwangi, Banyuwangi</p>
                 </div>
               </div>
@@ -110,7 +111,7 @@ function HeroSection() {
                   <span className="text-2xl">🏷️</span>
                 </div>
                 <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Mulai dari</span>
+                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{t('hero.startFrom')}</span>
                   <p className="font-extrabold text-gray-900 text-lg text-[var(--amber)]">Rp 100.000</p>
                 </div>
               </div>
@@ -145,11 +146,12 @@ function HeroSection() {
    BENEFITS SECTION
    ═══════════════════════════════════════ */
 function BenefitsSection() {
+  const { t } = useLanguage();
   const benefits = [
-    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>, title: 'Best Price', desc: 'Harga terjangkau tanpa biaya tersembunyi. Dijamin termurah!' },
-    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>, title: 'Aman & Terjamin', desc: 'Semua unit dilengkapi asuransi dan alat keselamatan lengkap.' },
-    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>, title: 'Guide Profesional', desc: 'Pemandu bersertifikat dengan pengalaman lebih dari 10 tahun.' },
-    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>, title: 'Unit Terawat', desc: 'Jetski & wahana rutin di-service untuk kenyamanan Anda.' },
+    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>, title: t('benefits.price.title'), desc: t('benefits.price.desc') },
+    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>, title: t('benefits.safe.title'), desc: t('benefits.safe.desc') },
+    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>, title: t('benefits.guide.title'), desc: t('benefits.guide.desc') },
+    { icon: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--teal)]"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>, title: t('benefits.unit.title'), desc: t('benefits.unit.desc') },
   ];
 
   return (
@@ -175,6 +177,7 @@ function BenefitsSection() {
    SERVICES SECTION
    ═══════════════════════════════════════ */
 function ServicesSection() {
+  const { t } = useLanguage();
   const [cats, setCats] = useState(watersportCategories);
 
   useEffect(() => {
@@ -188,13 +191,13 @@ function ServicesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-xs uppercase tracking-widest mb-4">
-            <Waves size={16} /> Layanan Kami
+            <Waves size={16} /> {t('services.badge')}
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4">
-            Pilih Kategori Favorit Anda
+            {t('services.title')}
           </h2>
           <p className="text-gray-500 leading-relaxed">
-            Berbagai aktivitas watersport seru menanti Anda di Banyuwangi. Pilih lokasi dan paket sesuai keinginan Anda!
+            {t('services.desc')}
           </p>
         </div>
 
@@ -215,7 +218,7 @@ function ServicesSection() {
                 <h3 className="font-bold text-gray-900 text-lg mb-2">{category.name}</h3>
                 <p className="text-gray-500 text-sm line-clamp-2 mb-4">{category.description}</p>
                 <div className="flex items-center justify-between mt-4">
-                  <span className="text-sm font-bold text-[var(--teal)]">Lihat Paket &rarr;</span>
+                  <span className="text-sm font-bold text-[var(--teal)]">{t('services.viewPackage')} &rarr;</span>
                 </div>
               </div>
             </Link>
@@ -287,6 +290,7 @@ function VideoSection() {
    ABOUT / WHY US SECTION
    ═══════════════════════════════════════ */
 function AboutSection() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -317,8 +321,8 @@ function AboutSection() {
                 10+
               </div>
               <div>
-                <span className="font-extrabold text-gray-900 text-lg block">Tahun</span>
-                <span className="text-gray-500 text-xs">Pengalaman Melayani</span>
+                <span className="font-extrabold text-gray-900 text-lg block">{t('about.expYears')}</span>
+                <span className="text-gray-500 text-xs">{t('about.expDesc')}</span>
               </div>
             </div>
           </div>
@@ -326,23 +330,21 @@ function AboutSection() {
           {/* Text Content */}
           <div>
             <span className="inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-xs uppercase tracking-widest mb-4">
-              <Anchor size={16} /> Tentang Kami
+              <Anchor size={16} /> {t('about.badge')}
             </span>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
-              Mengapa Memilih <br />
-              <span className="text-[var(--cyan)]">Banyuwangi Watersport?</span>
+              {t('about.title1')} <br />
+              <span className="text-[var(--cyan)]">{t('about.title2')}</span>
             </h2>
             <p className="text-gray-500 leading-relaxed mb-6">
-              Dengan pengalaman lebih dari 10 tahun, kami menyediakan layanan watersport premium dengan 
-              standar keselamatan internasional. Setiap unit dirawat secara berkala dan pemandu kami 
-              telah bersertifikat resmi.
+              {t('about.desc')}
             </p>
             <div className="space-y-4 mb-8">
               {[
-                { icon: <Shield size={18} />, text: 'Asuransi penuh untuk setiap penumpang' },
-                { icon: <Users size={18} />, text: 'Pemandu bersertifikat & ramah' },
-                { icon: <Clock size={18} />, text: 'Jadwal fleksibel sesuai kebutuhan' },
-                { icon: <Award size={18} />, text: 'Unit terawat & bersih setiap hari' },
+                { icon: <Shield size={18} />, text: t('about.point1') },
+                { icon: <Users size={18} />, text: t('about.point2') },
+                { icon: <Clock size={18} />, text: t('about.point3') },
+                { icon: <Award size={18} />, text: t('about.point4') },
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-[var(--cyan-soft)] text-[var(--cyan)] flex items-center justify-center flex-shrink-0">
@@ -353,7 +355,7 @@ function AboutSection() {
               ))}
             </div>
             <Link href="/login" className="btn btn-teal">
-              Pesan Sekarang <ArrowRight size={16} />
+              {t('about.btnBook')} <ArrowRight size={16} />
             </Link>
           </div>
         </div>
@@ -366,6 +368,7 @@ function AboutSection() {
    GALLERY SECTION
    ═══════════════════════════════════════ */
 function GallerySection() {
+  const { t } = useLanguage();
   const [photos, setPhotos] = useState([
     { id: 1, src: '/images/hero-jetski.png', alt: 'Jetski Action', span: 'col-span-2 row-span-2' },
     { id: 2, src: '/images/gallery-group.png', alt: 'Group Ride', span: '' },
@@ -385,13 +388,13 @@ function GallerySection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-xs uppercase tracking-widest mb-4">
-            📸 Galeri
+            📸 {t('gallery.badge')}
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4">
-            Momen Seru di Banyuwangi
+            {t('gallery.title')}
           </h2>
           <p className="text-gray-500">
-            Lihat keseruan aktivitas watersport dari pelanggan kami.
+            {t('gallery.desc')}
           </p>
         </div>
 
@@ -425,6 +428,7 @@ function GallerySection() {
    TESTIMONIALS CAROUSEL
    ═══════════════════════════════════════ */
 function TestimonialsSection() {
+  const { t } = useLanguage();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [clientTestimonials, setClientTestimonials] = useState(testimonials);
   const slidesPerView = 3;
@@ -454,13 +458,13 @@ function TestimonialsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="inline-flex items-center gap-2 text-cyan-200 font-bold text-xs uppercase tracking-widest mb-4">
-            ⭐ Testimoni
+            ⭐ {t('testimonials.badge')}
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4">
-            Kata Mereka Tentang Kami
+            {t('testimonials.title')}
           </h2>
           <p className="text-white/60">
-            Ribuan pelanggan puas telah merasakan serunya watersport bersama kami.
+            {t('testimonials.desc')}
           </p>
         </div>
 
@@ -528,20 +532,21 @@ function TestimonialsSection() {
    ARTICLES SECTION
    ═══════════════════════════════════════ */
 function ArticlesSection() {
+  const { t } = useLanguage();
   return (
     <section id="artikel" className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-12">
           <div>
             <span className="inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-xs uppercase tracking-widest mb-4">
-              📰 Artikel Terbaru
+              📰 {t('articles.badge')}
             </span>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900">
-              Info & Tips Watersport
+              {t('articles.title')}
             </h2>
           </div>
           <Link href="#" className="hidden sm:inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-sm hover:gap-3 transition-all">
-            Lihat Semua <ArrowRight size={16} />
+            {t('articles.viewAll')} <ArrowRight size={16} />
           </Link>
         </div>
 
@@ -583,6 +588,7 @@ function ArticlesSection() {
    CTA SECTION
    ═══════════════════════════════════════ */
 function CTASection() {
+  const { t } = useLanguage();
   return (
     <section className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -593,17 +599,17 @@ function CTASection() {
 
           <div className="relative z-10">
             <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4">
-              Siap Bermain Jetski? 🏄
+              {t('cta.title')}
             </h2>
             <p className="text-white/70 mb-8 max-w-lg mx-auto">
-              Daftar sekarang dan dapatkan penawaran terbaik untuk pengalaman watersport yang tak terlupakan di Banyuwangi!
+              {t('cta.desc')}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/register" className="btn bg-white text-[var(--teal)] font-bold px-8 py-3.5 hover:bg-gray-100 transition-colors rounded-full">
-                Daftar Gratis
+                {t('cta.btnRegister')}
               </Link>
               <Link href="/login" className="btn btn-outline-white px-8 py-3.5">
-                Login & Book
+                {t('cta.btnLogin')}
               </Link>
             </div>
           </div>
