@@ -1,0 +1,22 @@
+{
+  "name": "Banyuwangi Watersport",
+  "short_name": "BWI Watersport",
+  "description": "Sewa Jetski & Watersport Premium di Banyuwangi",
+  "start_url": "/member",
+  "display": "standalone",
+  "background_color": "#3366FF",
+  "theme_color": "#3366FF",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/images/hero-jetski.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/hero-jetski.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

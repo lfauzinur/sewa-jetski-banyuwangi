@@ -1,0 +1,381 @@
+// ═══════════════════════════════════════
+// DATA - Banyuwangi Watersport
+// ═══════════════════════════════════════
+
+export const COMPANY = {
+  name: 'Banyuwangi Watersport',
+  tagline: 'Premium Jetski & Watersport Experience in Banyuwangi',
+  phone: '+62 812-3456-7890',
+  whatsapp: '6281234567890',
+  email: 'sewajetskibanyuwangi@gmail.com',
+  address: 'Jl Kapten Waroka No 08 Tukangkayu Banyuwangi Jawa Timur.',
+  instagram: 'https://instagram.com/tanjungBanyuwangiwatersport',
+  facebook: 'https://facebook.com/tanjungBanyuwangiwatersport',
+  tiktok: 'https://tiktok.com/@tanjungBanyuwangiwatersport',
+  youtube: 'https://youtube.com/@tanjungBanyuwangiwatersport',
+  tripadvisor: 'https://tripadvisor.com/',
+  maps: 'https://maps.google.com/?q=-8.7721,115.2294',
+  lat: -8.7721,
+  lng: 115.2294,
+};
+
+export const watersportCategories = [
+  {
+    id: 'cat-001',
+    name: 'Jetski di Pantai Boom Banyuwangi',
+    slug: 'pantai-boom',
+    description: 'Nikmati sensasi bermain jetski di perairan Pantai Boom dengan ombak yang bersahabat.',
+    image: '/images/hero-jetski.png',
+  },
+  {
+    id: 'cat-002',
+    name: 'Jetski di Pulau Tabuhan Banyuwangi',
+    slug: 'pulau-tabuhan',
+    description: 'Petualangan jetski melintasi selat Bali menuju keindahan berpasir putih Pulau Tabuhan.',
+    image: '/images/gallery-aerial.png',
+  },
+  {
+    id: 'cat-003',
+    name: 'Safari Packages',
+    slug: 'safari-packages',
+    description: 'Paket touring dan petualangan seru melintasi berbagai spot indah di perairan Banyuwangi.',
+    image: '/images/gallery-sunset.png',
+  }
+];
+
+export const jetskiUnits = [
+  {
+    id: 'js-001',
+    name: 'Yamaha WaveRunner VX',
+    slug: 'yamaha-waverunner-vx',
+    category: 'Standard',
+    description: 'Jet ski yang nyaman dan mudah dikendalikan, cocok untuk pemula dan keluarga.',
+    pricePerSlot: 350000,
+    capacity: 2,
+    engineCC: 1049,
+    topSpeed: '80 km/h',
+    rating: 4.8,
+    reviews: 124,
+    image: '/images/gallery-group.png',
+    features: ['GPS Tracking', 'Life Jacket', 'Guide Pendamping', 'Asuransi'],
+    available: true,
+  },
+  {
+    id: 'js-002',
+    name: 'Yamaha FX SVHO',
+    slug: 'yamaha-fx-svho',
+    category: 'Premium',
+    description: 'Performa tinggi dengan fitur mewah. Cocok untuk pencinta kecepatan dan sensasi.',
+    pricePerSlot: 500000,
+    capacity: 3,
+    engineCC: 1812,
+    topSpeed: '110 km/h',
+    rating: 4.9,
+    reviews: 89,
+    image: '/images/hero-jetski.png',
+    features: ['GPS Tracking', 'Life Jacket', 'Guide Pendamping', 'Asuransi', 'Action Camera'],
+    available: true,
+  },
+  {
+    id: 'js-003',
+    name: 'Sea-Doo GTX 170',
+    slug: 'seadoo-gtx-170',
+    category: 'Premium',
+    description: 'Desain modern dengan teknologi canggih, memberikan kenyamanan maksimal di atas air.',
+    pricePerSlot: 450000,
+    capacity: 3,
+    engineCC: 1630,
+    topSpeed: '100 km/h',
+    rating: 4.7,
+    reviews: 67,
+    image: '/images/gallery-aerial.png',
+    features: ['GPS Tracking', 'Life Jacket', 'Guide Pendamping', 'Asuransi', 'Bluetooth Speaker'],
+    available: true,
+  },
+  {
+    id: 'js-004',
+    name: 'Kawasaki Ultra 310R',
+    slug: 'kawasaki-ultra-310r',
+    category: 'Sport',
+    description: 'Jet ski tercepat di kelasnya! Untuk pengalaman balap di atas air yang tak terlupakan.',
+    pricePerSlot: 600000,
+    capacity: 2,
+    engineCC: 1498,
+    topSpeed: '120 km/h',
+    rating: 4.9,
+    reviews: 45,
+    image: '/images/gallery-group.png',
+    features: ['GPS Tracking', 'Life Jacket', 'Guide Pendamping', 'Asuransi', 'Action Camera', 'Drone Video'],
+    available: true,
+  },
+];
+
+export const watersportServices = [
+  {
+    id: 'ws-001',
+    name: 'Jetski Adventure',
+    slug: 'jetski-adventure',
+    description: 'Nikmati sensasi meluncur di atas ombak dengan Jetski berkualitas tinggi di perairan Banyuwangi.',
+    price: 350000,
+    duration: '30 menit',
+    image: '/images/hero-jetski.png',
+    icon: '🏄',
+    details: 'Guide Profesional\nPelampung Keselamatan (Life Jacket)\nAsuransi Dasar\nAir Mineral',
+  },
+  {
+    id: 'ws-002',
+    name: 'Banana Boat',
+    slug: 'banana-boat',
+    description: 'Serunya bermain banana boat bersama keluarga dan teman di laut yang tenang.',
+    price: 100000,
+    duration: '15 menit',
+    image: '/images/gallery-banana-boat.png',
+    icon: '🍌',
+    details: 'Life Jacket\nGuide & Driver Perahu\nAsuransi',
+  },
+  {
+    id: 'ws-003',
+    name: 'Parasailing',
+    slug: 'parasailing',
+    description: 'Terbang tinggi di atas laut dan nikmati pemandangan pantai Banyuwangi dari ketinggian.',
+    price: 200000,
+    duration: '15 menit',
+    image: '/images/gallery-parasailing.png',
+    icon: '🪂',
+    details: 'Parasut & Tali Pengaman\nLife Jacket\nInstruktur Profesional\nAsuransi',
+  },
+  {
+    id: 'ws-004',
+    name: 'Snorkeling',
+    slug: 'snorkeling',
+    description: 'Jelajahi keindahan bawah laut Banyuwangi dengan peralatan snorkeling lengkap.',
+    price: 150000,
+    duration: '60 menit',
+    image: '/images/gallery-aerial.png',
+    icon: '🤿',
+    details: 'Kacamata Snorkel & Fin\nLife Jacket\nGuide Lokal\nAir Mineral',
+  },
+  {
+    id: 'ws-005',
+    name: 'Flying Fish',
+    slug: 'flying-fish',
+    description: 'Rasakan sensasi terbang di atas air dengan wahana Flying Fish yang mendebarkan.',
+    price: 150000,
+    duration: '15 menit',
+    image: '/images/gallery-group.png',
+    icon: '🐠',
+    details: 'Flying Fish Boat\nLife Jacket\nDriver Speedboat Profesional\nAsuransi',
+  },
+  {
+    id: 'ws-006',
+    name: 'Paket Watersport Combo',
+    slug: 'paket-combo',
+    description: 'Paket hemat 4 wahana: Jetski + Banana Boat + Parasailing + Snorkeling.',
+    price: 650000,
+    duration: '2 jam',
+    image: '/images/gallery-sunset.png',
+    icon: '🎉',
+  },
+];
+
+export const testimonials = [
+  {
+    id: 1,
+    name: 'Rina Sanjaya',
+    role: 'Tourist from Jakarta',
+    avatar: '👩',
+    rating: 5,
+    text: 'Pengalaman luar biasa! Guide-nya ramah dan profesional. Jetski dalam kondisi sangat baik. Pasti akan kembali lagi!',
+  },
+  {
+    id: 2,
+    name: 'Michael Chen',
+    role: 'Tourist from Singapore',
+    avatar: '👨',
+    rating: 5,
+    text: 'Best jet ski experience in Banyuwangi! The water is crystal clear and the staff are incredibly helpful. Highly recommended!',
+  },
+  {
+    id: 3,
+    name: 'Dewi Kartika',
+    role: 'Tourist from Surabaya',
+    avatar: '👩',
+    rating: 4,
+    text: 'Harga terjangkau dengan pelayanan premium. Anak-anak saya sangat senang bermain banana boat dan parasailing!',
+  },
+  {
+    id: 4,
+    name: 'James Williams',
+    role: 'Tourist from Australia',
+    avatar: '👨',
+    rating: 5,
+    text: 'Incredible value for money! The combo package was amazing. Did jet skiing, parasailing and banana boat all in one day!',
+  },
+  {
+    id: 5,
+    name: 'Budi Setiawan',
+    role: 'Tourist from Bandung',
+    avatar: '👨',
+    rating: 5,
+    text: 'Booking online-nya mudah banget, langsung dapat konfirmasi. Lokasinya juga strategis di Banyuwangi.',
+  },
+  {
+    id: 6,
+    name: 'Yuki Tanaka',
+    role: 'Tourist from Japan',
+    avatar: '👩',
+    rating: 5,
+    text: 'とても楽しかったです！Safety equipment is top notch, the guide was very patient with beginners. Beautiful experience!',
+  },
+];
+
+export const articles = [
+  {
+    id: 1,
+    title: '5 Tips Aman Bermain Jetski untuk Pemula',
+    slug: '5-tips-aman-bermain-jetski',
+    excerpt: 'Pertama kali naik jetski? Jangan khawatir! Ikuti 5 tips keamanan ini agar pengalaman watersport Anda menyenangkan dan aman.',
+    date: '2026-10-05',
+    category: 'Tips & Trik',
+    image: '/images/hero-jetski.png',
+    readTime: '5 menit',
+  },
+  {
+    id: 2,
+    title: 'Banyuwangi: Surga Watersport di Banyuwangi',
+    slug: 'tanjung-Banyuwangi-surga-watersport',
+    excerpt: 'Mengapa Banyuwangi menjadi destinasi watersport nomor satu di Banyuwangi? Temukan jawabannya di artikel ini.',
+    date: '2026-09-28',
+    category: 'Destinasi',
+    image: '/images/gallery-aerial.png',
+    readTime: '7 menit',
+  },
+  {
+    id: 3,
+    title: 'Paket Watersport Hemat untuk Keluarga',
+    slug: 'paket-watersport-keluarga',
+    excerpt: 'Liburan keluarga ke Banyuwangi? Cek paket watersport terbaik yang ramah kantong untuk Anda dan buah hati.',
+    date: '2026-09-20',
+    category: 'Promo',
+    image: '/images/gallery-banana-boat.png',
+    readTime: '4 menit',
+  },
+];
+
+export const timeSlots = [
+  { id: 'ts-1', time: '08:00 - 08:30', label: '08:00' },
+  { id: 'ts-2', time: '08:30 - 09:00', label: '08:30' },
+  { id: 'ts-3', time: '09:00 - 09:30', label: '09:00' },
+  { id: 'ts-4', time: '09:30 - 10:00', label: '09:30' },
+  { id: 'ts-5', time: '10:00 - 10:30', label: '10:00' },
+  { id: 'ts-6', time: '10:30 - 11:00', label: '10:30' },
+  { id: 'ts-7', time: '11:00 - 11:30', label: '11:00' },
+  { id: 'ts-8', time: '11:30 - 12:00', label: '11:30' },
+  { id: 'ts-9', time: '13:00 - 13:30', label: '13:00' },
+  { id: 'ts-10', time: '13:30 - 14:00', label: '13:30' },
+  { id: 'ts-11', time: '14:00 - 14:30', label: '14:00' },
+  { id: 'ts-12', time: '14:30 - 15:00', label: '14:30' },
+  { id: 'ts-13', time: '15:00 - 15:30', label: '15:00' },
+  { id: 'ts-14', time: '15:30 - 16:00', label: '15:30' },
+  { id: 'ts-15', time: '16:00 - 16:30', label: '16:00' },
+  { id: 'ts-16', time: '16:30 - 17:00', label: '16:30' },
+];
+
+// Mock bookings for admin dashboard
+export const mockBookings = [
+  {
+    id: 'BK-20261001',
+    customerName: 'Rina Sanjaya',
+    customerEmail: 'rina@email.com',
+    customerPhone: '081234567890',
+    unit: 'Yamaha WaveRunner VX',
+    date: '2026-10-12',
+    timeSlot: '10:00 - 10:30',
+    totalPrice: 350000,
+    status: 'confirmed',
+    createdAt: '2026-10-01',
+  },
+  {
+    id: 'BK-20261002',
+    customerName: 'Michael Chen',
+    customerEmail: 'michael@email.com',
+    customerPhone: '081298765432',
+    unit: 'Yamaha FX SVHO',
+    date: '2026-10-12',
+    timeSlot: '14:00 - 14:30',
+    totalPrice: 500000,
+    status: 'pending',
+    createdAt: '2026-10-02',
+  },
+  {
+    id: 'BK-20261003',
+    customerName: 'Dewi Kartika',
+    customerEmail: 'dewi@email.com',
+    customerPhone: '081345678901',
+    unit: 'Sea-Doo GTX 170',
+    date: '2026-10-13',
+    timeSlot: '09:00 - 09:30',
+    totalPrice: 450000,
+    status: 'confirmed',
+    createdAt: '2026-10-03',
+  },
+  {
+    id: 'BK-20261004',
+    customerName: 'James Williams',
+    customerEmail: 'james@email.com',
+    customerPhone: '081456789012',
+    unit: 'Kawasaki Ultra 310R',
+    date: '2026-10-14',
+    timeSlot: '11:00 - 11:30',
+    totalPrice: 600000,
+    status: 'completed',
+    createdAt: '2026-10-04',
+  },
+  {
+    id: 'BK-20261005',
+    customerName: 'Budi Setiawan',
+    customerEmail: 'budi@email.com',
+    customerPhone: '081567890123',
+    unit: 'Yamaha WaveRunner VX',
+    date: '2026-10-15',
+    timeSlot: '08:00 - 08:30',
+    totalPrice: 350000,
+    status: 'cancelled',
+    createdAt: '2026-10-05',
+  },
+];
+
+// Format currency IDR
+export function formatCurrency(amount) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+// Generate booking ID
+export function generateBookingId() {
+  const date = new Date();
+  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `BK-${dateStr}${random}`;
+}
+
+// WhatsApp link generator
+export function getWhatsAppLink(message = '') {
+  const encoded = encodeURIComponent(message);
+  return `https://wa.me/${COMPANY.whatsapp}?text=${encoded}`;
+}
+
+// Format date to Indonesian locale
+export function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
