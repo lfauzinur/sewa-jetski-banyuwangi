@@ -10,9 +10,10 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import {
-  COMPANY, watersportServices, watersportCategories, testimonials, articles,
+  COMPANY, watersportServices, watersportCategories, testimonials, articles as staticArticles,
   formatCurrency, formatDate
 } from '@/lib/data';
+import { getCategories, getArticles, getPromos } from '@/lib/supabase-data';
 
 /* ═══════════════════════════════════════
    HERO SECTION
@@ -174,6 +175,14 @@ function BenefitsSection() {
    SERVICES SECTION
    ═══════════════════════════════════════ */
 function ServicesSection() {
+  const [cats, setCats] = useState(watersportCategories);
+
+  useEffect(() => {
+    getCategories().then(data => {
+      if (data && data.length > 0) setCats(data);
+    });
+  }, []);
+
   return (
     <section id="layanan" className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -190,7 +199,7 @@ function ServicesSection() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {watersportCategories.map((category) => (
+          {cats.map((category) => (
             <Link href={`/kategori/${category.slug}`} key={category.id} className="card group cursor-pointer block">
               <div className="relative h-52 overflow-hidden">
                 <Image
@@ -537,7 +546,7 @@ function ArticlesSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {articles.map(article => (
+          {staticArticles.map(article => (
             <Link href={`/artikel/${article.slug}`} key={article.id} className="card group cursor-pointer block">
               <div className="relative h-48 overflow-hidden">
                 <Image

@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Plus, Edit2, Trash2, X, Star, Search, Filter } from 'lucide-react';
 import { formatCurrency } from '@/lib/data';
+import { getServicesByType, upsertService, deleteService } from '@/lib/supabase-data';
 
 const DEFAULT_UNIT = {
   id: '', name: '', slug: '', category: 'Standard', description: '',
-  pricePerSlot: 350000, capacity: 2, engineCC: 1000, topSpeed: '80 km/h',
+  price: 350000, capacity: 2, engineCC: 1000, topSpeed: '80 km/h',
   rating: 4.5, reviews: 0, image: '/images/hero-jetski.png',
   features: ['GPS Tracking', 'Life Jacket', 'Guide Pendamping', 'Asuransi'],
-  available: true,
+  available: true, type: 'jetski',
 };
 
 export default function AdminUnits() {
@@ -20,40 +21,40 @@ export default function AdminUnits() {
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin_units');
-    if (stored) {
-      setUnits(JSON.parse(stored));
-    } else {
-      // Seed with default data
-      const { jetskiUnits } = require('@/lib/data');
-      setUnits(jetskiUnits);
-      localStorage.setItem('admin_units', JSON.stringify(jetskiUnits));
-    }
+    const loadData = async () => {
+      const data = await getServicesByType('jetski');
+      if (data && data.length > 0) {
+        setUnits(data);
+      } else {
+        // Seed with default data
+        const { jetskiUnits } = require('@/lib/data');
+        setUnits(jetskiUnits);
+      }
+    };
+    loadData();
   }, []);
 
-  const saveUnits = (updated) => {
-    setUnits(updated);
-    localStorage.setItem('admin_units', JSON.stringify(updated));
-  };
-
-  const handleSave = (unit) => {
-    let updated;
-    if (editUnit) {
-      updated = units.map(u => u.id === unit.id ? unit : u);
-    } else {
-      unit.id = `js-${Date.now()}`;
-      unit.slug = unit.name.toLowerCase().replace(/\s+/g, '-');
-      updated = [...units, unit];
+  const handleSave = async (unit) => {
+    const payload = { ...unit, type: 'jetski' };
+    if (!payload.slug) payload.slug = payload.name.toLowerCase().replace(/\s+/g, '-');
+    
+    const result = await upsertService(payload);
+    if (result) {
+      if (editUnit) {
+        setUnits(prev => prev.map(u => u.id === unit.id ? result : u));
+      } else {
+        setUnits(prev => [...prev, result]);
+      }
     }
-    saveUnits(updated);
     setShowModal(false);
     setEditUnit(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    const updated = units.filter(u => u.id !== deleteTarget.id);
-    saveUnits(updated);
+    if (await deleteService(deleteTarget.id)) {
+      setUnits(prev => prev.filter(u => u.id !== deleteTarget.id));
+    }
     setDeleteTarget(null);
   };
 

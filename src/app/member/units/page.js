@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Star, CheckCircle2 } from 'lucide-react';
 import { jetskiUnits, watersportServices } from '@/lib/data';
+import { getServices } from '@/lib/supabase-data';
 
 export default function MemberUnitsPage() {
   const [units, setUnits] = useState([]);
@@ -11,11 +12,17 @@ export default function MemberUnitsPage() {
   const [activeTab, setActiveTab] = useState('jetski');
 
   useEffect(() => {
-    const storedUnits = localStorage.getItem('admin_units');
-    setUnits(storedUnits ? JSON.parse(storedUnits) : jetskiUnits);
-
-    const storedServices = localStorage.getItem('admin_services');
-    setServices(storedServices ? JSON.parse(storedServices) : watersportServices);
+    const loadData = async () => {
+      const svcData = await getServices();
+      if (svcData && svcData.length > 0) {
+        setUnits(svcData.filter(s => s.type === 'jetski'));
+        setServices(svcData.filter(s => s.type === 'activity'));
+      } else {
+        setUnits(jetskiUnits);
+        setServices(watersportServices);
+      }
+    };
+    loadData();
   }, []);
 
   const displayItems = activeTab === 'jetski' ? units : services;

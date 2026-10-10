@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { watersportCategories, watersportServices, formatCurrency } from '@/lib/data';
+import { getCategories, getServicesByCategory, getServices } from '@/lib/supabase-data';
 
 function CategoryDetailContent() {
   const params = useParams();
@@ -16,36 +17,43 @@ function CategoryDetailContent() {
   useEffect(() => {
     if (!slug) return;
     
-    const cat = watersportCategories.find(c => c.slug === slug);
-    if (!cat) {
-      setLoading(false);
-      return;
-    }
-    
-    setCategory(cat);
-    
-    // Load services from admin storage if available
-    const storedServices = localStorage.getItem('admin_services');
-    let allServices = watersportServices;
-    if (storedServices) {
-      allServices = JSON.parse(storedServices);
-    }
-    
-    // Also include units (Jetski) since they are in admin_units
-    const storedUnits = localStorage.getItem('admin_units');
-    let allUnits = [];
-    if (storedUnits) {
-      allUnits = JSON.parse(storedUnits);
-    }
-    
-    // Combine both
-    const combinedServices = [...allServices, ...allUnits];
-    
-    // Filter by the category field that admin sets (matches category slug)
-    const items = combinedServices.filter(s => s.category === cat.slug || s.category === cat.name);
+    const loadData = async () => {
+      // Try to load category from Supabase first
+      const cats = await getCategories();
+      let cat = cats.find(c => c.slug === slug);
       
-    setDisplayItems(items.length > 0 ? items : combinedServices);
-    setLoading(false);
+      // Fallback to static data
+      if (!cat) {
+        cat = watersportCategories.find(c => c.slug === slug);
+      }
+      
+      if (!cat) {
+        setLoading(false);
+        return;
+      }
+      
+      setCategory(cat);
+      
+      // Load services from Supabase filtered by category
+      const catServices = await getServicesByCategory(cat.slug);
+      
+      if (catServices && catServices.length > 0) {
+        setDisplayItems(catServices);
+      } else {
+        // Fallback: load all services
+        const allServices = await getServices();
+        if (allServices && allServices.length > 0) {
+          const filtered = allServices.filter(s => s.category === cat.slug || s.category === cat.name);
+          setDisplayItems(filtered.length > 0 ? filtered : allServices);
+        } else {
+          setDisplayItems(watersportServices);
+        }
+      }
+      
+      setLoading(false);
+    };
+    
+    loadData();
   }, [slug]);
 
   if (loading) return <div className="min-h-screen pt-24 bg-[var(--bg-secondary)] text-center">Loading...</div>;

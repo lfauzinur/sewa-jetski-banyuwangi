@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2 } from 'lucide-react';
 import { jetskiUnits, articles as fallbackArticles, watersportServices as fallbackServices } from '@/lib/data';
+import { getServices, getArticles, getPromos } from '@/lib/supabase-data';
+import { supabase } from '@/lib/supabase';
 
 const defaultPromos = [
   { id: 1, title: 'BELI 1\nGRATIS 1', subtitle: 'Jetski Adventure', desc: 'Ajak teman & keluarga! Beli 1 tiket, gratis 1 tiket lagi. Berlaku weekdays.', bg: 'bg-blue-500', icon: '🎫' },
@@ -21,30 +23,46 @@ export default function MemberHome() {
   const [totalBookings, setTotalBookings] = useState(0);
 
   useEffect(() => {
-    const storedServices = localStorage.getItem('admin_units');
-    if (storedServices) setServices(JSON.parse(storedServices));
-    else setServices(jetskiUnits);
+    const loadData = async () => {
+      // Load services from Supabase
+      const svcData = await getServices();
+      if (svcData && svcData.length > 0) {
+        setServices(svcData.filter(s => s.type === 'jetski'));
+        setOtherServices(svcData.filter(s => s.type === 'activity'));
+      } else {
+        setServices(jetskiUnits);
+        setOtherServices(fallbackServices || []);
+      }
 
-    const storedOtherServices = localStorage.getItem('admin_services');
-    if (storedOtherServices) setOtherServices(JSON.parse(storedOtherServices));
-    else setOtherServices(fallbackServices || []);
+      // Load articles from Supabase
+      const artData = await getArticles();
+      if (artData && artData.length > 0) setArticles(artData);
+      else setArticles(fallbackArticles || []);
 
-    const storedArticles = localStorage.getItem('admin_articles');
-    if (storedArticles) setArticles(JSON.parse(storedArticles));
-    else setArticles(fallbackArticles || []);
+      // Load promos from Supabase
+      const promoData = await getPromos();
+      if (promoData && promoData.length > 0) {
+        setPromos(promoData.map(p => ({ ...p, desc: p.description, bg: p.bg_color })));
+      }
 
-    const storedPromos = localStorage.getItem('admin_promos');
-    if (storedPromos) setPromos(JSON.parse(storedPromos));
-
-    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-    if (storedUser) setUser(storedUser);
-
-    const storedBookings = JSON.parse(localStorage.getItem('admin_bookings') || '[]');
-    const myBookings = storedUser ? storedBookings.filter(b => b.customerEmail === storedUser.email) : storedBookings;
-    setTotalBookings(myBookings.length);
+      // Get user from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser({
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          phone: session.user.user_metadata?.phone || '',
+        });
+      } else {
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+        if (storedUser) setUser(storedUser);
+      }
+    };
+    loadData();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('user');
     window.location.href = '/login';
   };

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Plus, Edit2, Trash2, X, FileText, Layers, MessageSquare, Star, Play, Image as ImageIcon, Tag } from 'lucide-react';
+import { getServices, upsertService, deleteService, getCategories, upsertCategory, deleteCategory, getArticles, upsertArticle, deleteArticle, getPromos, upsertPromo, deletePromo } from '@/lib/supabase-data';
 
 export default function AdminContent() {
   const [tab, setTab] = useState('articles');
@@ -15,91 +16,120 @@ export default function AdminContent() {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load from localStorage or seed from data.js
-    const loadData = (key, fallbackImport) => {
-      const stored = localStorage.getItem(key);
-      if (stored) return JSON.parse(stored);
-      const data = require('@/lib/data');
-      const val = data[fallbackImport];
-      localStorage.setItem(key, JSON.stringify(val));
-      return val;
+    const loadAll = async () => {
+      setLoading(true);
+      try {
+        const [svc, cats, arts, prms] = await Promise.all([
+          getServices(),
+          getCategories(),
+          getArticles(),
+          getPromos(),
+        ]);
+        setServices(svc);
+        setCategories(cats);
+        setArticles(arts);
+        // Map Supabase fields to local format for promos
+        setPromos(prms.map(p => ({ ...p, desc: p.description, bg: p.bg_color })));
+      } catch (err) {
+        console.error('Failed to load data:', err);
+      }
+
+      // These remain in localStorage for now (no Supabase table)
+      const storedTestimonials = localStorage.getItem('admin_testimonials');
+      if (storedTestimonials) setTestimonials(JSON.parse(storedTestimonials));
+      else {
+        const data = require('@/lib/data');
+        setTestimonials(data.testimonials);
+        localStorage.setItem('admin_testimonials', JSON.stringify(data.testimonials));
+      }
+
+      const storedGallery = localStorage.getItem('admin_gallery');
+      if (storedGallery) setGallery(JSON.parse(storedGallery));
+      else {
+        const defGal = [
+          { id: 1, src: '/images/hero-jetski.png', alt: 'Jetski Action', span: 'col-span-2 row-span-2' },
+          { id: 2, src: '/images/gallery-group.png', alt: 'Group Ride', span: '' },
+          { id: 3, src: '/images/gallery-aerial.png', alt: 'Aerial View', span: '' },
+          { id: 4, src: '/images/gallery-banana-boat.png', alt: 'Banana Boat', span: '' },
+          { id: 5, src: '/images/gallery-parasailing.png', alt: 'Parasailing', span: '' },
+          { id: 6, src: '/images/gallery-sunset.png', alt: 'Sunset View', span: 'col-span-2' },
+        ];
+        setGallery(defGal);
+        localStorage.setItem('admin_gallery', JSON.stringify(defGal));
+      }
+
+      const storedVideo = localStorage.getItem('admin_video');
+      if (storedVideo) setVideo(JSON.parse(storedVideo));
+
+      setLoading(false);
     };
-    setArticles(loadData('admin_articles', 'articles'));
-    setCategories(loadData('admin_categories', 'watersportCategories'));
-    setTestimonials(loadData('admin_testimonials', 'testimonials'));
-    setServices(loadData('admin_services', 'watersportServices'));
-
-    const storedPromos = localStorage.getItem('admin_promos');
-    if (storedPromos) setPromos(JSON.parse(storedPromos));
-    else {
-      const defPromos = [
-        { id: 1, title: 'BELI 1\nGRATIS 1', subtitle: 'Jetski Adventure', desc: 'Ajak teman & keluarga! Beli 1 tiket, gratis 1 tiket lagi. Berlaku weekdays.', bg: 'bg-blue-500', icon: '🎫' },
-        { id: 2, title: 'PAKET VOUCHER\nLANGGANAN EKSKLUSIF', subtitle: 'Member VIP', desc: 'Hemat Lebih Banyak Setiap Hari! Nikmati Diskon Mingguan.', bg: 'bg-cyan-500', icon: '🎟️' },
-      ];
-      setPromos(defPromos);
-      localStorage.setItem('admin_promos', JSON.stringify(defPromos));
-    }
-    
-    // Custom non-data.js loads
-    const storedGallery = localStorage.getItem('admin_gallery');
-    if (storedGallery) setGallery(JSON.parse(storedGallery));
-    else {
-      const defGal = [
-        { id: 1, src: '/images/hero-jetski.png', alt: 'Jetski Action', span: 'col-span-2 row-span-2' },
-        { id: 2, src: '/images/gallery-group.png', alt: 'Group Ride', span: '' },
-        { id: 3, src: '/images/gallery-aerial.png', alt: 'Aerial View', span: '' },
-        { id: 4, src: '/images/gallery-banana-boat.png', alt: 'Banana Boat', span: '' },
-        { id: 5, src: '/images/gallery-parasailing.png', alt: 'Parasailing', span: '' },
-        { id: 6, src: '/images/gallery-sunset.png', alt: 'Sunset View', span: 'col-span-2' },
-      ];
-      setGallery(defGal);
-      localStorage.setItem('admin_gallery', JSON.stringify(defGal));
-    }
-
-    const storedVideo = localStorage.getItem('admin_video');
-    if (storedVideo) setVideo(JSON.parse(storedVideo));
+    loadAll();
   }, []);
 
-  const save = (key, data, setter) => { setter(data); localStorage.setItem(key, JSON.stringify(data)); };
+  const saveLocal = (key, data, setter) => { setter(data); localStorage.setItem(key, JSON.stringify(data)); };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
     const { type, item } = deleteTarget;
-    if (type === 'articles') save('admin_articles', articles.filter(a => a.id !== item.id), setArticles);
-    if (type === 'categories') save('admin_categories', categories.filter(c => c.id !== item.id), setCategories);
-    if (type === 'testimonials') save('admin_testimonials', testimonials.filter(t => t.id !== item.id), setTestimonials);
-    if (type === 'services') save('admin_services', services.filter(s => s.id !== item.id), setServices);
-    if (type === 'promos') save('admin_promos', promos.filter(p => p.id !== item.id), setPromos);
-    if (type === 'gallery') save('admin_gallery', gallery.filter(g => g.id !== item.id), setGallery);
+    if (type === 'articles') {
+      if (await deleteArticle(item.id)) setArticles(prev => prev.filter(a => a.id !== item.id));
+    }
+    if (type === 'categories') {
+      if (await deleteCategory(item.id)) setCategories(prev => prev.filter(c => c.id !== item.id));
+    }
+    if (type === 'services') {
+      if (await deleteService(item.id)) setServices(prev => prev.filter(s => s.id !== item.id));
+    }
+    if (type === 'promos') {
+      if (await deletePromo(item.id)) setPromos(prev => prev.filter(p => p.id !== item.id));
+    }
+    // localStorage items
+    if (type === 'testimonials') saveLocal('admin_testimonials', testimonials.filter(t => t.id !== item.id), setTestimonials);
+    if (type === 'gallery') saveLocal('admin_gallery', gallery.filter(g => g.id !== item.id), setGallery);
     setDeleteTarget(null);
   };
 
-  const handleSave = (item) => {
+  const handleSave = async (item) => {
     if (tab === 'articles') {
-      if (editItem) save('admin_articles', articles.map(a => a.id === item.id ? item : a), setArticles);
-      else save('admin_articles', [...articles, { ...item, id: Date.now() }], setArticles);
+      const result = await upsertArticle(item);
+      if (result) {
+        if (editItem) setArticles(prev => prev.map(a => a.id === item.id ? result : a));
+        else setArticles(prev => [...prev, result]);
+      }
     }
     if (tab === 'categories') {
-      if (editItem) save('admin_categories', categories.map(c => c.id === item.id ? item : c), setCategories);
-      else save('admin_categories', [...categories, { ...item, id: `cat-${Date.now()}` }], setCategories);
-    }
-    if (tab === 'testimonials') {
-      if (editItem) save('admin_testimonials', testimonials.map(t => t.id === item.id ? item : t), setTestimonials);
-      else save('admin_testimonials', [...testimonials, { ...item, id: Date.now() }], setTestimonials);
+      const result = await upsertCategory(item);
+      if (result) {
+        if (editItem) setCategories(prev => prev.map(c => c.id === item.id ? result : c));
+        else setCategories(prev => [...prev, result]);
+      }
     }
     if (tab === 'services') {
-      if (editItem) save('admin_services', services.map(s => s.id === item.id ? item : s), setServices);
-      else save('admin_services', [...services, { ...item, id: `ws-${Date.now()}` }], setServices);
+      const result = await upsertService(item);
+      if (result) {
+        if (editItem) setServices(prev => prev.map(s => s.id === item.id ? result : s));
+        else setServices(prev => [...prev, result]);
+      }
     }
     if (tab === 'promos') {
-      if (editItem) save('admin_promos', promos.map(p => p.id === item.id ? item : p), setPromos);
-      else save('admin_promos', [...promos, { ...item, id: Date.now() }], setPromos);
+      const result = await upsertPromo(item);
+      if (result) {
+        const mapped = { ...result, desc: result.description, bg: result.bg_color };
+        if (editItem) setPromos(prev => prev.map(p => p.id === item.id ? mapped : p));
+        else setPromos(prev => [...prev, mapped]);
+      }
+    }
+    // localStorage items
+    if (tab === 'testimonials') {
+      if (editItem) saveLocal('admin_testimonials', testimonials.map(t => t.id === item.id ? item : t), setTestimonials);
+      else saveLocal('admin_testimonials', [...testimonials, { ...item, id: Date.now() }], setTestimonials);
     }
     if (tab === 'gallery') {
-      if (editItem) save('admin_gallery', gallery.map(g => g.id === item.id ? item : g), setGallery);
-      else save('admin_gallery', [...gallery, { ...item, id: Date.now() }], setGallery);
+      if (editItem) saveLocal('admin_gallery', gallery.map(g => g.id === item.id ? item : g), setGallery);
+      else saveLocal('admin_gallery', [...gallery, { ...item, id: Date.now() }], setGallery);
     }
     setShowModal(false);
     setEditItem(null);
