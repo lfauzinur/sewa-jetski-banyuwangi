@@ -177,7 +177,7 @@ function BenefitsSection() {
    SERVICES SECTION
    ═══════════════════════════════════════ */
 function ServicesSection() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [cats, setCats] = useState(watersportCategories);
 
   useEffect(() => {
@@ -215,8 +215,8 @@ function ServicesSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
               <div className="p-6">
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{category.name}</h3>
-                <p className="text-gray-500 text-sm line-clamp-2 mb-4">{category.description}</p>
+                <h3 className="font-bold text-gray-900 text-lg mb-2">{lang === 'en' ? category.nameEn || category.name : category.name}</h3>
+                <p className="text-gray-500 text-sm line-clamp-2 mb-4">{lang === 'en' ? category.descriptionEn || category.description : category.description}</p>
                 <div className="flex items-center justify-between mt-4">
                   <span className="text-sm font-bold text-[var(--teal)]">{t('services.viewPackage')} &rarr;</span>
                 </div>
@@ -532,7 +532,7 @@ function TestimonialsSection() {
    ARTICLES SECTION
    ═══════════════════════════════════════ */
 function ArticlesSection() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   return (
     <section id="artikel" className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -556,25 +556,25 @@ function ArticlesSection() {
               <div className="relative h-48 overflow-hidden">
                 <Image
                   src={article.image}
-                  alt={article.title}
+                  alt={lang === 'en' ? article.titleEn || article.title : article.title}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
                 <div className="absolute top-4 left-4 bg-[var(--cyan)] text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">
-                  {article.category}
+                  {lang === 'en' ? article.categoryEn || article.category : article.category}
                 </div>
               </div>
               <div className="p-6">
                 <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
                   <span>{formatDate(article.date)}</span>
                   <span>•</span>
-                  <span>{article.readTime}</span>
+                  <span>{lang === 'en' ? article.readTimeEn || article.readTime : article.readTime}</span>
                 </div>
                 <h3 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-[var(--cyan)] transition-colors line-clamp-2">
-                  {article.title}
+                  {lang === 'en' ? article.titleEn || article.title : article.title}
                 </h3>
-                <p className="text-gray-500 text-sm line-clamp-2">{article.excerpt}</p>
+                <p className="text-gray-500 text-sm line-clamp-2">{lang === 'en' ? article.excerptEn || article.excerpt : article.excerpt}</p>
               </div>
             </Link>
           ))}
