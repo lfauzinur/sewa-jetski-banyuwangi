@@ -56,11 +56,26 @@ function BookingSuccessContent() {
       <div className="px-8 pt-16 pb-8 text-center flex-1 flex flex-col">
         <h1 className="text-2xl font-extrabold text-[var(--royal)] mb-3">Congratulations</h1>
         
-        <p className="text-gray-700 text-sm leading-relaxed mb-8">
+        <p className="text-gray-700 text-sm leading-relaxed mb-4">
           Your slot has been booked for Timeslot <br/>
           <strong className="text-gray-900">{booking.timeSlot}</strong>, On <strong className="text-gray-900">{formattedDate}</strong>, at <strong className="text-gray-900">{booking.unit.split(' ')[0] || 'Aspen'}</strong>. 
           Go to booking tab to see full details.
         </p>
+
+        {/* Add-ons List */}
+        {booking.addons && booking.addons.length > 0 && (
+          <div className="mb-6 p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/60 max-w-xs mx-auto text-left shadow-2xs">
+            <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider mb-1.5">Add-ons Tambahan:</p>
+            <div className="space-y-1">
+              {booking.addons.map((ad, idx) => (
+                <div key={idx} className="text-xs text-amber-950 font-medium flex justify-between">
+                  <span>+ {ad.name}</span>
+                  <span className="font-bold text-amber-700">+Rp {Number(ad.price).toLocaleString('id-ID')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* QR Code Container */}
         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 p-5 mx-auto mb-8 w-48 h-48 flex flex-col items-center justify-center relative overflow-hidden group">

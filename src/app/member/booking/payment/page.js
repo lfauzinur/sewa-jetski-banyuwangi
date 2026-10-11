@@ -126,6 +126,25 @@ function PaymentContent() {
               </div>
             )}
           </div>
+
+          {/* Rincian Singkat Unit & Add-ons */}
+          <div className="mt-4 pt-3 border-t border-gray-100 text-left text-xs space-y-1.5">
+            <div className="flex justify-between font-semibold text-gray-800">
+              <span>{booking.unit} ({booking.timeSlot})</span>
+              <span>Rp {(booking.basePrice || 0).toLocaleString('id-ID')}</span>
+            </div>
+            {booking.addons && booking.addons.length > 0 && (
+              <div className="space-y-1 pt-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Add-ons Tambahan:</p>
+                {booking.addons.map((ad, idx) => (
+                  <div key={idx} className="flex justify-between text-gray-600 pl-2">
+                    <span>+ {ad.name}</span>
+                    <span className="font-medium text-amber-600">+Rp {Number(ad.price).toLocaleString('id-ID')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Loyalty Reward Selection */}

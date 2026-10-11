@@ -88,6 +88,20 @@ export default function MemberBookings() {
                       <span className="flex items-center gap-1"><Calendar size={14} className="text-gray-400" /> {new Date(booking.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       <span className="flex items-center gap-1"><Clock size={14} className="text-gray-400" /> {booking.timeSlot}</span>
                     </div>
+
+                    {/* Add-ons Tambahan */}
+                    {booking.addons && booking.addons.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-dashed border-gray-100">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Add-ons Tambahan:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {booking.addons.map((addon, aIdx) => (
+                            <span key={aIdx} className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/60 px-2 py-0.5 rounded-md">
+                              <span>+</span> {addon.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 

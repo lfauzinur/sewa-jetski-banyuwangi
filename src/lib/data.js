@@ -334,6 +334,7 @@ export const mockBookings = [
     timeSlot: '10:00 - 10:30',
     totalPrice: 350000,
     status: 'confirmed',
+    addons: [{ id: 'addon-1', name: 'GoPro Hero 11 (Dokumentasi)', price: 100000 }],
     createdAt: '2026-10-01',
   },
   {
@@ -346,6 +347,7 @@ export const mockBookings = [
     timeSlot: '14:00 - 14:30',
     totalPrice: 500000,
     status: 'pending',
+    addons: [],
     createdAt: '2026-10-02',
   },
   {
@@ -358,6 +360,7 @@ export const mockBookings = [
     timeSlot: '09:00 - 09:30',
     totalPrice: 450000,
     status: 'confirmed',
+    addons: [{ id: 'addon-2', name: 'Insta360 X3 (360 Video)', price: 150000 }],
     createdAt: '2026-10-03',
   },
   {

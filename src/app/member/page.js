@@ -68,12 +68,12 @@ export default function MemberHome() {
   };
 
   const features = [
-    { name: 'Navigasi', icon: <Navigation size={24} className="text-white" />, href: '/member/navigation', color: 'bg-red-500 shadow-md shadow-red-500/20' },
-    { name: 'Pesan Unit', icon: <Waves size={24} className="text-blue-500" />, href: '#booking', color: 'bg-blue-50' },
-    { name: 'Lokasi', icon: <MapPin size={24} className="text-rose-500" />, href: '/member/location', color: 'bg-rose-50' },
-    { name: 'Reward', icon: <Gift size={24} className="text-amber-500" />, href: '/member/rewards', color: 'bg-amber-50' },
-    { name: 'Pesanan', icon: <Receipt size={24} className="text-emerald-500" />, href: '/member/bookings', color: 'bg-emerald-50' },
-    { name: 'Pembayaran', icon: <CreditCard size={24} className="text-violet-500" />, href: '/member/profile/payment', color: 'bg-violet-50' },
+    { name: 'Navigasi', icon: <Navigation size={22} className="text-[var(--royal)]" />, href: '/member/navigation', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
+    { name: 'Pesan Unit', icon: <Waves size={22} className="text-[var(--royal)]" />, href: '#booking', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
+    { name: 'Lokasi', icon: <MapPin size={22} className="text-[var(--royal)]" />, href: '/member/location', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
+    { name: 'Reward', icon: <Gift size={22} className="text-[var(--royal)]" />, href: '/member/rewards', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
+    { name: 'Pesanan', icon: <Receipt size={22} className="text-[var(--royal)]" />, href: '/member/bookings', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
+    { name: 'Pembayaran', icon: <CreditCard size={22} className="text-[var(--royal)]" />, href: '/member/profile/payment', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
   ];
 
   return (
@@ -91,8 +91,9 @@ export default function MemberHome() {
         
         <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-10 pt-12">
           <div>
-            <div className="text-white font-black text-2xl tracking-tighter mb-8 italic drop-shadow-md">
-              <span className="text-[var(--cyan)]">SEWA</span>JETSKI
+            <div className="text-white font-black text-xl sm:text-2xl tracking-tighter mb-8 italic drop-shadow-md flex items-center gap-1.5">
+              <span className="text-[var(--cyan)]">WATERSPORT</span>
+              <span>BANYUWANGI</span>
             </div>
             <p className="text-white/90 text-sm font-medium mb-1 drop-shadow-sm">Selamat datang kembali,</p>
             <h1 className="text-white font-bold text-2xl drop-shadow-md">{user.name}</h1>

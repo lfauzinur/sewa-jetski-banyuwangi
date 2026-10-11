@@ -276,28 +276,31 @@ export default function BookingPage({ params }) {
         </div>
       </div>
 
-      {/* Add-ons Section */}
+      {/* Add-ons Section - 2 Columns */}
       {addons.length > 0 && (
         <div className="px-6 mb-10">
-          <h2 className="font-bold text-gray-900 text-base mb-4">Tambahan (Add-ons)</h2>
-          <div className="space-y-3">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-gray-900 text-base">Tambahan (Add-ons)</h2>
+            <span className="text-xs text-gray-400 font-medium">Opsional</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {addons.map(addon => {
               const isSelected = selectedAddons.some(a => a.id === addon.id);
               return (
                 <div 
                   key={addon.id} 
                   onClick={() => toggleAddon(addon)}
-                  className={`p-4 rounded-2xl border-2 flex items-center justify-between cursor-pointer transition-all ${
-                    isSelected ? 'border-[var(--royal)] bg-[#F0F5FF]' : 'border-gray-100 bg-white hover:border-gray-200'
+                  className={`p-3.5 rounded-2xl border-2 flex items-start justify-between gap-2.5 cursor-pointer transition-all ${
+                    isSelected ? 'border-[var(--royal)] bg-[#F0F5FF] shadow-xs' : 'border-gray-100 bg-white hover:border-gray-200'
                   }`}
                 >
-                  <div>
-                    <h3 className={`text-sm font-bold ${isSelected ? 'text-[var(--royal)]' : 'text-gray-900'}`}>{addon.name}</h3>
-                    <p className="text-xs text-gray-500 mt-1 max-w-[200px]">{addon.description}</p>
-                    <p className="text-xs font-bold text-amber-500 mt-1">+Rp {addon.price.toLocaleString('id-ID')}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`text-xs sm:text-sm font-bold truncate ${isSelected ? 'text-[var(--royal)]' : 'text-gray-900'}`}>{addon.name}</h3>
+                    <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-relaxed">{addon.description}</p>
+                    <p className="text-xs font-bold text-amber-500 mt-1.5">+Rp {addon.price.toLocaleString('id-ID')}</p>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-[var(--royal)] bg-[var(--royal)] text-white' : 'border-gray-300'}`}>
-                    {isSelected && <CheckCircle2 size={14} />}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${isSelected ? 'border-[var(--royal)] bg-[var(--royal)] text-white' : 'border-gray-300'}`}>
+                    {isSelected && <CheckCircle2 size={12} />}
                   </div>
                 </div>
               );
