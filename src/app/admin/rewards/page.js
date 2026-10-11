@@ -102,24 +102,30 @@ export default function AdminRewardsPage() {
                   Nilai Reward ({currentReward.type === 'discount' ? 'Rp' : 'Menit'})
                 </label>
                 <input 
-                  type="number" 
+                  type="text" 
+                  inputMode="numeric"
                   required
-                  min="1"
                   className="w-full px-4 py-2 border rounded-xl" 
-                  value={currentReward.value} 
-                  onChange={e => setCurrentReward({...currentReward, value: parseInt(e.target.value) || 0})}
-                  placeholder={currentReward.type === 'discount' ? '50000' : '15'}
+                  value={currentReward.value ? Number(currentReward.value).toLocaleString('id-ID') : ''} 
+                  onChange={e => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    setCurrentReward({...currentReward, value: raw ? parseInt(raw, 10) : ''});
+                  }}
+                  placeholder={currentReward.type === 'discount' ? 'Contoh: 50000' : 'Contoh: 15'}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Poin Dibutuhkan</label>
                 <input 
-                  type="number" 
+                  type="text" 
+                  inputMode="numeric"
                   required
-                  min="1"
                   className="w-full px-4 py-2 border rounded-xl" 
-                  value={currentReward.points_required} 
-                  onChange={e => setCurrentReward({...currentReward, points_required: parseInt(e.target.value) || 0})}
+                  value={currentReward.points_required ? Number(currentReward.points_required).toLocaleString('id-ID') : ''} 
+                  onChange={e => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    setCurrentReward({...currentReward, points_required: raw ? parseInt(raw, 10) : ''});
+                  }}
                   placeholder="Misal: 50"
                 />
               </div>

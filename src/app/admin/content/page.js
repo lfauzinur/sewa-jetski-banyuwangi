@@ -136,13 +136,13 @@ export default function AdminContent() {
   };
 
   const tabs = [
-    { key: 'articles', label: 'Artikel', icon: <FileText size={16} />, count: articles.length },
-    { key: 'categories', label: 'Kategori', icon: <Layers size={16} />, count: categories.length },
-    { key: 'promos', label: 'Promo', icon: <Tag size={16} />, count: promos.length },
-    { key: 'services', label: 'Layanan', icon: <Star size={16} />, count: services.length },
-    { key: 'gallery', label: 'Galeri', icon: <ImageIcon size={16} />, count: gallery.length },
-    { key: 'video', label: 'Video', icon: <Play size={16} />, count: 1 },
-    { key: 'testimonials', label: 'Testimoni (Gambar 4)', icon: <MessageSquare size={16} />, count: testimonials.length },
+    { key: 'articles', label: 'Artikel', icon: <FileText size={17} />, count: articles.length, color: 'text-blue-500' },
+    { key: 'categories', label: 'Kategori', icon: <Layers size={17} />, count: categories.length, color: 'text-indigo-500' },
+    { key: 'promos', label: 'Promo', icon: <Tag size={17} />, count: promos.length, color: 'text-amber-500' },
+    { key: 'services', label: 'Layanan', icon: <Star size={17} />, count: services.length, color: 'text-emerald-500' },
+    { key: 'gallery', label: 'Galeri', icon: <ImageIcon size={17} />, count: gallery.length, color: 'text-cyan-500' },
+    { key: 'video', label: 'Video', icon: <Play size={17} />, count: 1, color: 'text-rose-500' },
+    { key: 'testimonials', label: 'Testimoni', icon: <MessageSquare size={17} />, count: testimonials.length, color: 'text-purple-500' },
   ];
 
   const currentData = tab === 'articles' ? articles : tab === 'categories' ? categories : tab === 'services' ? services : tab === 'gallery' ? gallery : testimonials;
@@ -161,13 +161,38 @@ export default function AdminContent() {
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all border ${tab === t.key ? 'bg-[var(--cyan)] text-white border-[var(--cyan)] shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}>
-            {t.icon} {t.label} <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${tab === t.key ? 'bg-white/20' : 'bg-gray-100'}`}>{t.count}</span>
-          </button>
-        ))}
+      {/* User-Friendly Segmented Tabs */}
+      <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
+          {tabs.map(t => {
+            const isActive = tab === t.key;
+            return (
+              <button 
+                key={t.key} 
+                onClick={() => setTab(t.key)} 
+                className={`
+                  flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer
+                  ${isActive 
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80 ring-1 ring-black/5' 
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-white/60'
+                  }
+                `}
+              >
+                <span className={isActive ? t.color : 'text-gray-400'}>{t.icon}</span>
+                <span>{t.label}</span>
+                <span className={`
+                  text-[11px] px-2 py-0.5 rounded-full font-extrabold transition-colors
+                  ${isActive 
+                    ? 'bg-[var(--cyan-soft)] text-[var(--teal)]' 
+                    : 'bg-gray-200/70 text-gray-600'
+                  }
+                `}>
+                  {t.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Content Grid */}
@@ -392,7 +417,20 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi</label><textarea rows={2} value={form.description} onChange={e => set('description', e.target.value)} className={`${inputClass} resize-none`} /></div>
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Detail / Include (Pisahkan dengan baris baru)</label><textarea rows={3} value={form.details || ''} onChange={e => set('details', e.target.value)} placeholder="Guide Profesional&#10;Pelampung&#10;Air Mineral" className={`${inputClass} resize-none`} /></div>
             <div className="grid grid-cols-3 gap-4">
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Harga</label><input type="number" value={form.price} onChange={e => set('price', parseInt(e.target.value) || 0)} className={inputClass} /></div>
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Harga (Rp)</label>
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  value={form.price ? Number(form.price).toLocaleString('id-ID') : ''} 
+                  onChange={e => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    set('price', raw ? parseInt(raw, 10) : '');
+                  }} 
+                  placeholder="0"
+                  className={inputClass} 
+                />
+              </div>
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Durasi</label><input type="text" value={form.duration} onChange={e => set('duration', e.target.value)} className={inputClass} /></div>
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon</label><input type="text" value={form.icon} onChange={e => set('icon', e.target.value)} className={inputClass} /></div>
             </div>

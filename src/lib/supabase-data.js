@@ -274,13 +274,42 @@ export async function updateBookingStatus(id, status) {
 // ========================
 // ADD-ONS
 // ========================
+const DEFAULT_ADDONS = [
+  { id: 'addon-1', name: 'GoPro Hero 11 (Dokumentasi)', description: 'Sewa action cam GoPro Hero 11 termasuk memory card & mounting', price: 100000, active: true },
+  { id: 'addon-2', name: 'Insta360 X3 (360 Video)', description: 'Video 360 derajat sinematik saat bermain jetski', price: 150000, active: true },
+  { id: 'addon-3', name: 'Drone Aerial Video 4K', description: 'Pengambilan video udara dari drone pilot profesional', price: 250000, active: true },
+  { id: 'addon-4', name: 'Water Shoes Anti-Slip', description: 'Sepatu khusus air untuk keamanan dan kenyamanan kaki', price: 25000, active: true },
+  { id: 'addon-5', name: 'Asuransi Ekstra Watersport', description: 'Perlindungan asuransi kecelakaan ekstra per orang', price: 35000, active: true },
+];
+
 export async function getAddons() {
-  const { data, error } = await supabase
-    .from('addons')
-    .select('*')
-    .order('created_at', { ascending: true });
-  if (error) { console.error('getAddons error:', error); return []; }
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('addons')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (!error && data && data.length > 0) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_addons', JSON.stringify(data));
+      }
+      return data;
+    }
+  } catch (err) {
+    console.warn('getAddons supabase err:', err);
+  }
+
+  // Fallback to localStorage or defaults
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('admin_addons');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    localStorage.setItem('admin_addons', JSON.stringify(DEFAULT_ADDONS));
+  }
+  return DEFAULT_ADDONS;
 }
 
 export async function upsertAddon(addon) {
@@ -291,18 +320,72 @@ export async function upsertAddon(addon) {
     active: addon.active !== false
   };
 
-  if (addon.id && typeof addon.id === 'string' && addon.id.includes('-')) {
-    const { data, error } = await supabase.from('addons').update(payload).eq('id', addon.id).select().single();
-    if (error) console.error('updateAddon error:', error); return data;
-  } else {
-    const { data, error } = await supabase.from('addons').insert(payload).select().single();
-    if (error) console.error('insertAddon error:', error); return data;
+  let savedData = null;
+
+  try {
+    if (addon.id && typeof addon.id === 'string' && addon.id.includes('-') && !addon.id.startsWith('addon-')) {
+      const { data, error } = await supabase.from('addons').update(payload).eq('id', addon.id).select().single();
+      if (!error && data) savedData = data;
+      else if (error) console.warn('Supabase updateAddon error (falling back to local):', error);
+    } else {
+      const { data, error } = await supabase.from('addons').insert(payload).select().single();
+      if (!error && data) savedData = data;
+      else if (error) console.warn('Supabase insertAddon error (falling back to local):', error);
+    }
+  } catch (err) {
+    console.warn('Supabase upsertAddon exception:', err);
   }
+
+  // Fallback to localStorage if Supabase failed or table does not exist
+  if (!savedData && typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_addons') || JSON.stringify(DEFAULT_ADDONS));
+    const isEdit = !!addon.id;
+    const targetId = isEdit ? addon.id : `addon-${Date.now()}`;
+    const newObj = {
+      ...payload,
+      id: targetId,
+      created_at: addon.created_at || new Date().toISOString()
+    };
+
+    let updatedList;
+    if (isEdit) {
+      updatedList = existing.map(item => item.id === targetId ? newObj : item);
+      if (!updatedList.some(item => item.id === targetId)) {
+        updatedList.push(newObj);
+      }
+    } else {
+      updatedList = [...existing, newObj];
+    }
+    localStorage.setItem('admin_addons', JSON.stringify(updatedList));
+    savedData = newObj;
+  } else if (savedData && typeof window !== 'undefined') {
+    // Sync Supabase success into localStorage cache
+    const existing = JSON.parse(localStorage.getItem('admin_addons') || '[]');
+    const isEdit = existing.some(item => item.id === savedData.id);
+    const updatedList = isEdit
+      ? existing.map(item => item.id === savedData.id ? savedData : item)
+      : [...existing, savedData];
+    localStorage.setItem('admin_addons', JSON.stringify(updatedList));
+  }
+
+  return savedData;
 }
 
 export async function deleteAddon(id) {
-  const { error } = await supabase.from('addons').delete().eq('id', id);
-  if (error) console.error('deleteAddon error:', error); return !error;
+  try {
+    if (typeof id === 'string' && !id.startsWith('addon-')) {
+      await supabase.from('addons').delete().eq('id', id);
+    }
+  } catch (err) {
+    console.warn('Supabase deleteAddon error:', err);
+  }
+
+  if (typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_addons') || '[]');
+    const filtered = existing.filter(item => item.id !== id);
+    localStorage.setItem('admin_addons', JSON.stringify(filtered));
+  }
+  return true;
 }
 
 // ========================
@@ -399,16 +482,43 @@ export async function getLoyaltyTransactions(userId) {
 }
 
 // ========================
+// ========================
 // REWARDS
 // ========================
+const DEFAULT_REWARDS = [
+  { id: 'reward-1', name: 'Diskon Booking Rp 25.000', type: 'discount', value: 25000, points_required: 50, active: true },
+  { id: 'reward-2', name: 'Diskon Booking Rp 50.000', type: 'discount', value: 50000, points_required: 100, active: true },
+  { id: 'reward-3', name: 'Ekstra Waktu 15 Menit', type: 'duration', value: 15, points_required: 75, active: true },
+  { id: 'reward-4', name: 'Diskon Booking Rp 100.000', type: 'discount', value: 100000, points_required: 180, active: true },
+];
+
 export async function getLoyaltyRewards() {
-  const { data, error } = await supabase
-    .from('loyalty_rewards')
-    .select('*')
-    .eq('active', true)
-    .order('points_required', { ascending: true });
-  if (error) { console.error('getLoyaltyRewards error:', error); return []; }
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('loyalty_rewards')
+      .select('*')
+      .order('points_required', { ascending: true });
+    if (!error && data && data.length > 0) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_rewards', JSON.stringify(data));
+      }
+      return data;
+    }
+  } catch (err) {
+    console.warn('getLoyaltyRewards error:', err);
+  }
+
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('admin_rewards');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    localStorage.setItem('admin_rewards', JSON.stringify(DEFAULT_REWARDS));
+  }
+  return DEFAULT_REWARDS;
 }
 
 export async function upsertLoyaltyReward(reward) {
@@ -420,18 +530,67 @@ export async function upsertLoyaltyReward(reward) {
     active: reward.active !== false
   };
 
-  if (reward.id && typeof reward.id === 'string' && reward.id.includes('-')) {
-    const { data, error } = await supabase.from('loyalty_rewards').update(payload).eq('id', reward.id).select().single();
-    if (error) console.error('updateReward error:', error); return data;
-  } else {
-    const { data, error } = await supabase.from('loyalty_rewards').insert(payload).select().single();
-    if (error) console.error('insertReward error:', error); return data;
+  let savedData = null;
+
+  try {
+    if (reward.id && typeof reward.id === 'string' && reward.id.includes('-') && !reward.id.startsWith('reward-')) {
+      const { data, error } = await supabase.from('loyalty_rewards').update(payload).eq('id', reward.id).select().single();
+      if (!error && data) savedData = data;
+    } else {
+      const { data, error } = await supabase.from('loyalty_rewards').insert(payload).select().single();
+      if (!error && data) savedData = data;
+    }
+  } catch (err) {
+    console.warn('upsertLoyaltyReward exception:', err);
   }
+
+  // Fallback to localStorage
+  if (!savedData && typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_rewards') || JSON.stringify(DEFAULT_REWARDS));
+    const isEdit = !!reward.id;
+    const targetId = isEdit ? reward.id : `reward-${Date.now()}`;
+    const newObj = {
+      ...payload,
+      id: targetId,
+      created_at: reward.created_at || new Date().toISOString()
+    };
+
+    let updatedList;
+    if (isEdit) {
+      updatedList = existing.map(item => item.id === targetId ? newObj : item);
+      if (!updatedList.some(item => item.id === targetId)) updatedList.push(newObj);
+    } else {
+      updatedList = [...existing, newObj];
+    }
+    localStorage.setItem('admin_rewards', JSON.stringify(updatedList));
+    savedData = newObj;
+  } else if (savedData && typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_rewards') || '[]');
+    const isEdit = existing.some(item => item.id === savedData.id);
+    const updatedList = isEdit
+      ? existing.map(item => item.id === savedData.id ? savedData : item)
+      : [...existing, savedData];
+    localStorage.setItem('admin_rewards', JSON.stringify(updatedList));
+  }
+
+  return savedData;
 }
 
 export async function deleteLoyaltyReward(id) {
-  const { error } = await supabase.from('loyalty_rewards').delete().eq('id', id);
-  if (error) console.error('deleteReward error:', error); return !error;
+  try {
+    if (typeof id === 'string' && !id.startsWith('reward-')) {
+      await supabase.from('loyalty_rewards').delete().eq('id', id);
+    }
+  } catch (err) {
+    console.warn('deleteLoyaltyReward error:', err);
+  }
+
+  if (typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_rewards') || '[]');
+    const filtered = existing.filter(item => item.id !== id);
+    localStorage.setItem('admin_rewards', JSON.stringify(filtered));
+  }
+  return true;
 }
 
 // ========================

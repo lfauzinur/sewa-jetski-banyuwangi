@@ -298,20 +298,32 @@ body {
 }
 
 /* ══════════════════════════════════════════
-   SCROLLBAR
+   SCROLLBAR & INPUT SPINNERS
    ══════════════════════════════════════════ */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--cyan-light);
+  background: #cbd5e1;
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--cyan);
+}
+
+/* Hide input type number stepper arrows */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* ══════════════════════════════════════════

@@ -172,8 +172,21 @@ function UnitFormModal({ unit, onSave, onClose, isEdit }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Harga / Slot</label>
-              <input type="number" value={form.pricePerSlot} onChange={e => handleChange('pricePerSlot', parseInt(e.target.value) || 0)} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[var(--cyan)] focus:ring-2 focus:ring-[var(--cyan)]/20 outline-none" />
+              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Harga / Slot (Rp)</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs select-none">Rp</span>
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  value={form.pricePerSlot ? Number(form.pricePerSlot).toLocaleString('id-ID') : ''} 
+                  onChange={e => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    handleChange('pricePerSlot', raw ? parseInt(raw, 10) : '');
+                  }} 
+                  placeholder="0"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[var(--cyan)] focus:ring-2 focus:ring-[var(--cyan)]/20 outline-none" 
+                />
+              </div>
             </div>
           </div>
           <div>
