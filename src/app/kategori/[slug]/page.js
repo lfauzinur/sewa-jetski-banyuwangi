@@ -82,6 +82,7 @@ function CategoryDetailContent() {
             fill 
             className="object-cover transition-transform duration-1000 group-hover:scale-105"
             priority
+            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12">
@@ -107,12 +108,22 @@ function CategoryDetailContent() {
           {displayItems.length > 0 ? displayItems.map((item) => (
             <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group border border-gray-100 flex flex-col">
               <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={item.image || '/images/hero-jetski.png'}
-                  alt={item.name}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                />
+                {(() => {
+                  const serviceImage = (item.image && item.image !== '/images/hero-jetski.png')
+                    ? item.image
+                    : (item.name?.toLowerCase().includes('paddle') || item.name?.toLowerCase().includes('padle'))
+                      ? '/images/paddle-board.png'
+                      : (item.image || '/images/hero-jetski.png');
+                  return (
+                    <Image
+                      src={serviceImage}
+                      alt={item.name}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      unoptimized
+                    />
+                  );
+                })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold text-[var(--teal)]">
                   {lang === 'en' ? item.durationEn || item.duration || 'Product' : item.duration || 'Produk'}

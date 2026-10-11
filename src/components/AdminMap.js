@@ -1,53 +1,74 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 import { getLiveLocations, getGpsGeofences, getGpsRoutes } from '@/lib/supabase-data';
-import { supabase } from '@/lib/supabase';
 
 const riderIcon = new L.divIcon({
-  html: '<div style="font-size: 16px; background: white; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid #EF4444;">🏄‍♂️</div>',
+  html: '<div style="font-size: 16px; background: white; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid #EF4444;">🏄‍♂️</div>',
   className: '',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15]
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
 });
 
-export default function AdminMap() {
+const waypointIcon = (num, color = '#10B981') => new L.divIcon({
+  html: `<div style="background: ${color}; color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 11px; font-weight: 800; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.35);">${num}</div>`,
+  className: '',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
+
+function MapClickHandler({ isDrawing, onMapClick }) {
+  useMapEvents({
+    click(e) {
+      if (isDrawing && onMapClick) {
+        onMapClick([Number(e.latlng.lat.toFixed(6)), Number(e.latlng.lng.toFixed(6))]);
+      }
+    }
+  });
+  return null;
+}
+
+export default function AdminMap({ 
+  refreshTrigger = 0,
+  isDrawing = false,
+  drawingPoints = [],
+  drawingColor = '#10B981',
+  onMapClick = null
+}) {
   const [locations, setLocations] = useState([]);
   const [geofences, setGeofences] = useState([]);
   const [routes, setRoutes] = useState([]);
 
-  // Default Center
+  // Default Center (Pantai Boom Banyuwangi)
   const defaultCenter = [-8.204555, 114.385455];
 
   useEffect(() => {
     async function loadData() {
       const loc = await getLiveLocations();
-      setLocations(loc);
+      setLocations(loc || []);
 
       const f = await getGpsGeofences();
-      setGeofences(f);
+      setGeofences(f || []);
 
       const r = await getGpsRoutes();
-      setRoutes(r);
+      setRoutes(r || []);
     }
     loadData();
 
-    // Set up polling because realtime requires table replication settings on Supabase
-    // To ensure it just works for the user MVP without complex DB configs, we poll every 3 seconds.
     const interval = setInterval(async () => {
       const loc = await getLiveLocations();
-      setLocations(loc);
-    }, 3000);
+      setLocations(loc || []);
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshTrigger]);
 
   return (
-    <div className="w-full h-[600px] bg-gray-100 rounded-3xl overflow-hidden shadow-sm border border-gray-200">
+    <div className={`w-full h-[600px] bg-gray-100 rounded-3xl overflow-hidden shadow-sm border border-gray-200 relative ${isDrawing ? 'cursor-crosshair ring-2 ring-emerald-500' : ''}`}>
       <MapContainer 
         center={defaultCenter} 
         zoom={14} 
@@ -58,17 +79,46 @@ export default function AdminMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Routes */}
+        {/* Click listener for interactive drawing */}
+        <MapClickHandler isDrawing={isDrawing} onMapClick={onMapClick} />
+
+        {/* Existing Saved Routes */}
         {routes.filter(r => r.active).map(route => (
           <Polyline 
             key={route.id}
             positions={route.path_data} 
             color={route.color || '#3B82F6'} 
-            weight={3}
-            opacity={0.5}
-            dashArray="5, 10"
+            weight={3.5}
+            opacity={0.65}
+            dashArray="6, 8"
           />
         ))}
+
+        {/* Active Drawing Route in Progress */}
+        {isDrawing && drawingPoints.length > 0 && (
+          <>
+            <Polyline 
+              positions={drawingPoints} 
+              color={drawingColor || '#10B981'} 
+              weight={5}
+              opacity={0.9}
+            />
+            {drawingPoints.map((pt, idx) => (
+              <Marker 
+                key={`wp-${idx}`} 
+                position={pt} 
+                icon={waypointIcon(idx + 1, drawingColor)}
+              >
+                <Popup>
+                  <div className="text-center text-xs">
+                    <p className="font-bold text-gray-800">Titik {idx + 1}</p>
+                    <p className="text-[10px] text-gray-500 font-mono mt-0.5">{pt[0]}, {pt[1]}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </>
+        )}
 
         {/* Geofences */}
         {geofences.filter(g => g.active && g.polygon_data).map(fence => {
@@ -84,14 +134,14 @@ export default function AdminMap() {
 
         {/* Active Riders */}
         {locations.map(loc => {
-          const isStale = new Date() - new Date(loc.last_updated) > 60000; // > 1 minute
+          const isStale = new Date() - new Date(loc.last_updated) > 60000;
           return (
             <Marker key={loc.user_id} position={[loc.lat, loc.lng]} icon={riderIcon} opacity={isStale ? 0.5 : 1}>
               <Popup>
                 <div className="text-center">
                   <p className="font-bold text-gray-900">{loc.user_name}</p>
                   <p className="text-xs text-gray-500">Speed: {Math.round(loc.speed || 0)} m/s</p>
-                  <p className="text-[10px] text-gray-400">Last seen: {isStale ? 'Offline' : 'Live'}</p>
+                  <p className="text-[10px] text-gray-400">Status: {isStale ? 'Offline' : 'Sedang Berlayar'}</p>
                 </div>
               </Popup>
             </Marker>

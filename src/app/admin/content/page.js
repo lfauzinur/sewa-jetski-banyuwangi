@@ -1,8 +1,26 @@
 'use client';
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { Plus, Edit2, Trash2, X, FileText, Layers, MessageSquare, Star, Play, Image as ImageIcon, Tag } from 'lucide-react';
-import { getServices, upsertService, deleteService, getCategories, upsertCategory, deleteCategory, getArticles, upsertArticle, deleteArticle, getPromos, upsertPromo, deletePromo } from '@/lib/supabase-data';
+import { 
+  Plus, Edit2, Trash2, X, FileText, Layers, MessageSquare, Star, Play, 
+  Image as ImageIcon, Tag, Upload, Check, Sparkles 
+} from 'lucide-react';
+import { 
+  getServices, upsertService, deleteService, 
+  getCategories, upsertCategory, deleteCategory, 
+  getArticles, upsertArticle, deleteArticle, 
+  getPromos, upsertPromo, deletePromo 
+} from '@/lib/supabase-data';
+
+// Koleksi Gambar Siap Pakai untuk Kemudahan Admin
+const WATERSPORT_PRESETS = [
+  { name: 'Paddle Board', src: '/images/paddle-board.png', icon: '🏄' },
+  { name: 'Jetski WaveRunner', src: '/images/hero-jetski.png', icon: '⚡' },
+  { name: 'Banana Boat', src: '/images/gallery-banana-boat.png', icon: '🍌' },
+  { name: 'Parasailing', src: '/images/gallery-parasailing.png', icon: '🪂' },
+  { name: 'Pantai & Sunset', src: '/images/gallery-sunset.png', icon: '🌅' },
+  { name: 'Pulau / Aerial View', src: '/images/gallery-aerial.png', icon: '🏝️' },
+  { name: 'Group Wisatawan', src: '/images/gallery-group.png', icon: '👥' },
+];
 
 export default function AdminContent() {
   const [tab, setTab] = useState('articles');
@@ -28,22 +46,21 @@ export default function AdminContent() {
           getArticles(),
           getPromos(),
         ]);
-        setServices(svc);
-        setCategories(cats);
-        setArticles(arts);
-        // Map Supabase fields to local format for promos
-        setPromos(prms.map(p => ({ ...p, desc: p.description, bg: p.bg_color })));
+        setServices(svc || []);
+        setCategories(cats || []);
+        setArticles(arts || []);
+        setPromos((prms || []).map(p => ({ ...p, desc: p.description, bg: p.bg_color })));
       } catch (err) {
         console.error('Failed to load data:', err);
       }
 
-      // These remain in localStorage for now (no Supabase table)
+      // LocalStorage data (Testimoni, Galeri, Video)
       const storedTestimonials = localStorage.getItem('admin_testimonials');
       if (storedTestimonials) setTestimonials(JSON.parse(storedTestimonials));
       else {
         const data = require('@/lib/data');
-        setTestimonials(data.testimonials);
-        localStorage.setItem('admin_testimonials', JSON.stringify(data.testimonials));
+        setTestimonials(data.testimonials || []);
+        localStorage.setItem('admin_testimonials', JSON.stringify(data.testimonials || []));
       }
 
       const storedGallery = localStorage.getItem('admin_gallery');
@@ -69,7 +86,10 @@ export default function AdminContent() {
     loadAll();
   }, []);
 
-  const saveLocal = (key, data, setter) => { setter(data); localStorage.setItem(key, JSON.stringify(data)); };
+  const saveLocal = (key, data, setter) => { 
+    setter(data); 
+    localStorage.setItem(key, JSON.stringify(data)); 
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -86,7 +106,6 @@ export default function AdminContent() {
     if (type === 'promos') {
       if (await deletePromo(item.id)) setPromos(prev => prev.filter(p => p.id !== item.id));
     }
-    // localStorage items
     if (type === 'testimonials') saveLocal('admin_testimonials', testimonials.filter(t => t.id !== item.id), setTestimonials);
     if (type === 'gallery') saveLocal('admin_gallery', gallery.filter(g => g.id !== item.id), setGallery);
     setDeleteTarget(null);
@@ -122,7 +141,6 @@ export default function AdminContent() {
         else setPromos(prev => [...prev, mapped]);
       }
     }
-    // localStorage items
     if (tab === 'testimonials') {
       if (editItem) saveLocal('admin_testimonials', testimonials.map(t => t.id === item.id ? item : t), setTestimonials);
       else saveLocal('admin_testimonials', [...testimonials, { ...item, id: Date.now() }], setTestimonials);
@@ -145,23 +163,24 @@ export default function AdminContent() {
     { key: 'testimonials', label: 'Testimoni', icon: <MessageSquare size={17} />, count: testimonials.length, color: 'text-purple-500' },
   ];
 
-  const currentData = tab === 'articles' ? articles : tab === 'categories' ? categories : tab === 'services' ? services : tab === 'gallery' ? gallery : testimonials;
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Konten CMS</h2>
-          <p className="text-gray-500 text-sm">Kelola artikel, kategori, layanan, galeri, video, dan testimoni website.</p>
+          <p className="text-gray-500 text-sm">Kelola artikel, kategori, layanan, galeri foto, video, dan testimoni website.</p>
         </div>
         {tab !== 'video' && (
-          <button onClick={() => { setEditItem(null); setShowModal(true); }} className="btn btn-cyan px-4 py-2.5 text-sm flex items-center gap-2 shadow-sm">
+          <button 
+            onClick={() => { setEditItem(null); setShowModal(true); }} 
+            className="btn btn-cyan px-4 py-2.5 text-sm flex items-center gap-2 shadow-sm cursor-pointer"
+          >
             <Plus size={18} /> Tambah {tabs.find(t => t.key === tab)?.label.split(' ')[0]}
           </button>
         )}
       </div>
 
-      {/* User-Friendly Segmented Tabs */}
+      {/* Segmented Tabs Navigation */}
       <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner">
         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
           {tabs.map(t => {
@@ -195,19 +214,21 @@ export default function AdminContent() {
         </div>
       </div>
 
-      {/* Content Grid */}
+      {/* ARTIKEL TAB */}
       {tab === 'articles' && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {articles.map(item => (
-            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="relative h-36"><Image src={item.image} alt={item.title} fill className="object-cover" sizes="33vw" /></div>
-              <div className="p-4">
+            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+              <div className="relative h-40 bg-gray-100">
+                <img src={item.image || '/images/hero-jetski.png'} alt={item.title} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-4 flex flex-col flex-1">
                 <span className="text-[10px] font-bold text-[var(--cyan)] uppercase">{item.category}</span>
                 <h3 className="font-bold text-gray-900 text-sm mt-1 line-clamp-2">{item.title}</h3>
-                <p className="text-gray-500 text-xs mt-1 line-clamp-2">{item.excerpt}</p>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100"><Edit2 size={12} /> Edit</button>
-                  <button onClick={() => setDeleteTarget({ type: 'articles', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100"><Trash2 size={12} /> Hapus</button>
+                <p className="text-gray-500 text-xs mt-1 line-clamp-2 flex-1">{item.excerpt}</p>
+                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                  <button onClick={() => setDeleteTarget({ type: 'articles', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
                 </div>
               </div>
             </div>
@@ -215,17 +236,20 @@ export default function AdminContent() {
         </div>
       )}
 
+      {/* KATEGORI TAB */}
       {tab === 'categories' && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {categories.map(item => (
-            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="relative h-36"><Image src={item.image} alt={item.name} fill className="object-cover" sizes="33vw" /></div>
-              <div className="p-4">
+            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+              <div className="relative h-40 bg-gray-100">
+                <img src={item.image || '/images/hero-jetski.png'} alt={item.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-4 flex flex-col flex-1">
                 <h3 className="font-bold text-gray-900 text-sm">{item.name}</h3>
-                <p className="text-gray-500 text-xs mt-1 line-clamp-2">{item.description}</p>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100"><Edit2 size={12} /> Edit</button>
-                  <button onClick={() => setDeleteTarget({ type: 'categories', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100"><Trash2 size={12} /> Hapus</button>
+                <p className="text-gray-500 text-xs mt-1 line-clamp-2 flex-1">{item.description}</p>
+                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                  <button onClick={() => setDeleteTarget({ type: 'categories', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
                 </div>
               </div>
             </div>
@@ -233,20 +257,21 @@ export default function AdminContent() {
         </div>
       )}
 
+      {/* PROMO TAB */}
       {tab === 'promos' && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {promos.map(item => (
-            <div key={item.id} className={`rounded-2xl overflow-hidden shadow-sm border border-gray-100`}>
+            <div key={item.id} className="rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col">
               <div className={`${item.bg || 'bg-blue-500'} p-5 h-36 relative overflow-hidden`}>
                 <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-lg"></div>
                 <span className="text-xs text-white/70 font-bold uppercase tracking-widest">{item.subtitle}</span>
                 <h3 className="text-white text-lg font-black mt-1 whitespace-pre-line leading-tight">{item.title}</h3>
               </div>
-              <div className="bg-white p-4">
-                <p className="text-gray-500 text-xs line-clamp-2">{item.desc}</p>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100"><Edit2 size={12} /> Edit</button>
-                  <button onClick={() => setDeleteTarget({ type: 'promos', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100"><Trash2 size={12} /> Hapus</button>
+              <div className="bg-white p-4 flex flex-col flex-1">
+                <p className="text-gray-500 text-xs line-clamp-2 flex-1">{item.desc}</p>
+                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                  <button onClick={() => setDeleteTarget({ type: 'promos', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
                 </div>
               </div>
             </div>
@@ -254,27 +279,62 @@ export default function AdminContent() {
         </div>
       )}
 
+      {/* LAYANAN TAB */}
       {tab === 'services' && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {services.map(item => (
-            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="relative h-36">
-                <Image src={item.image} alt={item.name} fill className="object-cover" sizes="33vw" />
-                {item.category && (
-                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-[var(--royal)] uppercase shadow-sm">
-                    {item.category}
+          {services.map(item => {
+            // Smart display image fallback if user set paddle/padle
+            const serviceImage = (item.image && item.image !== '/images/hero-jetski.png')
+              ? item.image
+              : (item.name?.toLowerCase().includes('paddle') || item.name?.toLowerCase().includes('padle'))
+                ? '/images/paddle-board.png'
+                : (item.image || '/images/hero-jetski.png');
+
+            return (
+              <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+                <div className="relative h-44 bg-gray-100">
+                  <img src={serviceImage} alt={item.name} className="w-full h-full object-cover" />
+                  {item.category && (
+                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-[var(--royal)] uppercase shadow-sm">
+                      {item.category}
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 flex flex-col flex-1">
+                  <h3 className="font-bold text-gray-900 text-base">{item.name}</h3>
+                  <p className="text-gray-500 text-xs mt-1">
+                    {item.icon} {item.duration} • <span className="font-bold text-[var(--teal)]">Rp {(item.price || 0).toLocaleString('id-ID')}</span>
+                  </p>
+                  {item.details && (
+                    <p className="text-gray-400 text-[11px] mt-2 line-clamp-2">
+                      📋 {item.details.split('\n').join(', ')}
+                    </p>
+                  )}
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                    <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                    <button onClick={() => setDeleteTarget({ type: 'services', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
                   </div>
-                )}
+                </div>
               </div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900 text-sm">{item.name}</h3>
-                <p className="text-gray-500 text-xs mt-1">{item.icon} {item.duration} • Rp {(item.price || 0).toLocaleString('id-ID')}</p>
-                {item.details && (
-                  <p className="text-gray-400 text-[10px] mt-1 line-clamp-1">📋 {item.details.split('\n').join(', ')}</p>
-                )}
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100"><Edit2 size={12} /> Edit</button>
-                  <button onClick={() => setDeleteTarget({ type: 'services', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100"><Trash2 size={12} /> Hapus</button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* GALERI TAB */}
+      {tab === 'gallery' && (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {gallery.map(item => (
+            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col">
+              <div className="relative h-44 bg-gray-100">
+                <img src={item.src} alt={item.alt} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-4 flex flex-col flex-1">
+                <h3 className="font-bold text-gray-900 text-sm">{item.alt || 'Foto Galeri'}</h3>
+                <p className="text-gray-400 text-xs mt-1">Grid span: {item.span || 'Normal'}</p>
+                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                  <button onClick={() => setDeleteTarget({ type: 'gallery', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
                 </div>
               </div>
             </div>
@@ -282,10 +342,11 @@ export default function AdminContent() {
         </div>
       )}
 
+      {/* TESTIMONI TAB */}
       {tab === 'testimonials' && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {testimonials.map(item => (
-            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg">{item.avatar}</div>
                 <div>
@@ -294,34 +355,17 @@ export default function AdminContent() {
                 </div>
               </div>
               <div className="flex gap-0.5 mb-2">{Array(item.rating).fill(0).map((_, i) => <Star key={i} size={12} className="text-amber-400" fill="currentColor" />)}</div>
-              <p className="text-gray-600 text-xs line-clamp-3 italic">&ldquo;{item.text}&rdquo;</p>
-              <div className="flex gap-2 mt-3">
-                <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100"><Edit2 size={12} /> Edit</button>
-                <button onClick={() => setDeleteTarget({ type: 'testimonials', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100"><Trash2 size={12} /> Hapus</button>
+              <p className="text-gray-600 text-xs line-clamp-3 italic flex-1">&ldquo;{item.text}&rdquo;</p>
+              <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                <button onClick={() => setDeleteTarget({ type: 'testimonials', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {tab === 'gallery' && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {gallery.map(item => (
-            <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <div className="relative h-40"><img src={item.src} alt={item.alt} className="w-full h-full object-cover" /></div>
-              <div className="p-4">
-                <h3 className="font-bold text-gray-900 text-sm">{item.alt}</h3>
-                <p className="text-gray-500 text-xs mt-1">Grid span: {item.span || 'Normal'}</p>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100"><Edit2 size={12} /> Edit</button>
-                  <button onClick={() => setDeleteTarget({ type: 'gallery', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100"><Trash2 size={12} /> Hapus</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
+      {/* VIDEO TAB */}
       {tab === 'video' && (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm max-w-2xl">
           <h3 className="font-bold text-gray-900 text-lg mb-4">Pengaturan Video Landing Page</h3>
@@ -337,13 +381,20 @@ export default function AdminContent() {
             <button onClick={() => {
               localStorage.setItem('admin_video', JSON.stringify(video));
               alert('Pengaturan video berhasil disimpan!');
-            }} className="btn btn-cyan px-6 py-2.5 text-sm mt-2">Simpan Perubahan Video</button>
+            }} className="btn btn-cyan px-6 py-2.5 text-sm mt-2 cursor-pointer">Simpan Perubahan Video</button>
           </div>
         </div>
       )}
 
+      {/* MODAL TAMBAH / EDIT */}
       {showModal && (
-        <ContentFormModal tab={tab} item={editItem} onSave={handleSave} onClose={() => { setShowModal(false); setEditItem(null); }} categories={categories} />
+        <ContentFormModal 
+          tab={tab} 
+          item={editItem} 
+          onSave={handleSave} 
+          onClose={() => { setShowModal(false); setEditItem(null); }} 
+          categories={categories} 
+        />
       )}
 
       {/* DELETE CONFIRM */}
@@ -353,8 +404,8 @@ export default function AdminContent() {
             <h3 className="font-bold text-gray-900 text-lg mb-2">Hapus Item?</h3>
             <p className="text-gray-500 text-sm mb-6">Apakah Anda yakin ingin menghapus item ini? Tindakan ini tidak dapat dibatalkan.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50">Batal</button>
-              <button onClick={handleDelete} className="flex-1 px-4 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold hover:bg-rose-600">Hapus</button>
+              <button onClick={() => setDeleteTarget(null)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer">Batal</button>
+              <button onClick={handleDelete} className="flex-1 px-4 py-2.5 bg-rose-500 text-white rounded-xl text-sm font-bold hover:bg-rose-600 cursor-pointer">Hapus</button>
             </div>
           </div>
         </div>
@@ -363,6 +414,196 @@ export default function AdminContent() {
   );
 }
 
+// Komponen Reusable untuk Upload Foto & Pilih Preset
+function ImageUploadField({ label = 'Foto / Gambar', value, onChange, presets = WATERSPORT_PRESETS, hint = '' }) {
+  const [urlInput, setUrlInput] = useState('');
+  const [showUrlBox, setShowUrlBox] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Mohon pilih file gambar (JPG, PNG, WebP).');
+      return;
+    }
+
+    setIsProcessing(true);
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        // Resize canvas to max 1200px width/height for high quality & small file size
+        const canvas = document.createElement('canvas');
+        const maxDim = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        onChange(dataUrl);
+        setIsProcessing(false);
+      };
+      img.src = readerEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+          {label} *
+        </label>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="text-[11px] font-bold text-rose-500 hover:underline cursor-pointer"
+          >
+            Hapus Foto
+          </button>
+        )}
+      </div>
+
+      {/* Preview Box */}
+      <div className="relative w-full h-44 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden flex flex-col items-center justify-center group">
+        {value ? (
+          <>
+            <img 
+              src={value} 
+              alt="Preview" 
+              className="w-full h-full object-cover" 
+            />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <label 
+                htmlFor={`file-upload-${label}`}
+                className="bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer hover:bg-gray-100 shadow-md flex items-center gap-1.5"
+              >
+                <Upload size={13} /> Ganti Foto
+              </label>
+            </div>
+          </>
+        ) : (
+          <div className="text-center p-4">
+            <div className="w-10 h-10 rounded-full bg-cyan-50 text-[var(--teal)] flex items-center justify-center mx-auto mb-2">
+              <ImageIcon size={20} />
+            </div>
+            <p className="text-xs font-bold text-gray-700">Belum ada foto dipilih</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">Unggah dari perangkat atau klik salah satu foto di bawah</p>
+          </div>
+        )}
+
+        {isProcessing && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center">
+            <span className="text-xs font-bold text-gray-700 animate-pulse">Memproses foto...</span>
+          </div>
+        )}
+      </div>
+
+      <input 
+        id={`file-upload-${label}`}
+        type="file" 
+        accept="image/*" 
+        className="hidden" 
+        onChange={handleFileChange}
+      />
+
+      {/* Action Buttons: Upload & Input URL */}
+      <div className="flex items-center gap-2 pt-1">
+        <label
+          htmlFor={`file-upload-${label}`}
+          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold py-2 px-3 rounded-xl cursor-pointer text-center flex items-center justify-center gap-1.5 transition-colors border border-gray-200"
+        >
+          <Upload size={14} className="text-gray-600" />
+          <span>Upload dari Komputer / HP</span>
+        </label>
+        <button
+          type="button"
+          onClick={() => setShowUrlBox(!showUrlBox)}
+          className="bg-white hover:bg-gray-50 text-gray-600 text-xs font-bold py-2 px-3 rounded-xl border border-gray-200 transition-colors cursor-pointer"
+        >
+          {showUrlBox ? 'Tutup URL' : 'Input URL'}
+        </button>
+      </div>
+
+      {/* URL Input Box */}
+      {showUrlBox && (
+        <div className="flex gap-2 pt-1 animate-fadeIn">
+          <input 
+            type="url" 
+            placeholder="https://... atau /images/..." 
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            className="flex-1 px-3 py-1.5 border border-gray-200 rounded-xl text-xs outline-none focus:border-cyan-500 font-mono"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (urlInput.trim()) {
+                onChange(urlInput.trim());
+                setShowUrlBox(false);
+              }
+            }}
+            className="bg-gray-800 hover:bg-black text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer"
+          >
+            Gunakan
+          </button>
+        </div>
+      )}
+
+      {/* Presets List */}
+      {presets.length > 0 && (
+        <div className="pt-2">
+          <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+            Pilihan Foto Siap Pakai (Klik untuk Memilih):
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {presets.map((preset, idx) => {
+              const isSelected = value === preset.src;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => onChange(preset.src)}
+                  className={`text-xs px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                    isSelected 
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 ring-2 ring-emerald-200' 
+                      : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{preset.icon || '📷'}</span>
+                  <span>{preset.name}</span>
+                  {isSelected && <Check size={12} className="text-emerald-600" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {hint && <p className="text-[10px] text-gray-400">{hint}</p>}
+    </div>
+  );
+}
+
+// Modal Form Tambah / Edit Konten
 function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
   const isEdit = !!item;
   const getDefaults = () => {
@@ -386,26 +627,49 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
 
   const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[var(--cyan)] focus:ring-2 focus:ring-[var(--cyan)]/20 outline-none";
 
+  // Label Title Modal
+  const modalTitle = isEdit 
+    ? `Edit ${tab === 'articles' ? 'Artikel' : tab === 'categories' ? 'Kategori' : tab === 'promos' ? 'Promo' : tab === 'services' ? 'Layanan' : tab === 'gallery' ? 'Galeri' : 'Testimoni'}`
+    : `Tambah ${tab === 'articles' ? 'Artikel' : tab === 'categories' ? 'Kategori' : tab === 'promos' ? 'Promo' : tab === 'services' ? 'Layanan' : tab === 'gallery' ? 'Galeri' : 'Testimoni'}`;
+
   return (
     <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
-          <h3 className="font-bold text-gray-900 text-lg">{isEdit ? 'Edit' : 'Tambah'} {tab === 'articles' ? 'Artikel' : tab === 'categories' ? 'Kategori' : tab === 'promos' ? 'Promo' : tab === 'services' ? 'Layanan' : 'Testimoni'}</h3>
-          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><X size={18} /></button>
+      <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-3xl z-10">
+          <h3 className="font-bold text-gray-900 text-lg">{modalTitle}</h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center cursor-pointer">
+            <X size={18} />
+          </button>
         </div>
+
         <div className="p-6 space-y-4">
+          {/* TAB ARTIKEL */}
           {tab === 'articles' && (<>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Judul</label><input type="text" value={form.title} onChange={e => set('title', e.target.value)} className={inputClass} /></div>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Excerpt</label><textarea rows={2} value={form.excerpt} onChange={e => set('excerpt', e.target.value)} className={`${inputClass} resize-none`} /></div>
+            <ImageUploadField 
+              label="Thumbnail Artikel" 
+              value={form.image} 
+              onChange={val => set('image', val)} 
+            />
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Judul Artikel *</label><input type="text" required value={form.title} onChange={e => set('title', e.target.value)} className={inputClass} placeholder="Contoh: 5 Tips Bermain Jetski Aman" /></div>
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Ringkasan / Excerpt</label><textarea rows={2} value={form.excerpt} onChange={e => set('excerpt', e.target.value)} className={`${inputClass} resize-none`} placeholder="Ringkasan singkat artikel..." /></div>
             <div className="grid grid-cols-2 gap-4">
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Kategori</label><input type="text" value={form.category} onChange={e => set('category', e.target.value)} className={inputClass} /></div>
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Tanggal</label><input type="date" value={form.date} onChange={e => set('date', e.target.value)} className={inputClass} /></div>
             </div>
           </>)}
+
+          {/* TAB KATEGORI */}
           {tab === 'categories' && (<>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama Kategori</label><input type="text" value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} /></div>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi</label><textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)} className={`${inputClass} resize-none`} /></div>
+            <ImageUploadField 
+              label="Foto Cover Kategori" 
+              value={form.image} 
+              onChange={val => set('image', val)} 
+            />
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama Kategori *</label><input type="text" required value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} placeholder="Contoh: Jetski di Pantai Boom" /></div>
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi Kategori</label><textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)} className={`${inputClass} resize-none`} placeholder="Jelaskan daya tarik kategori watersport ini..." /></div>
           </>)}
+
+          {/* TAB LAYANAN */}
           {tab === 'services' && (<>
             <div>
               <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Kategori (Pilih Kategori di Landing Page)</label>
@@ -413,9 +677,17 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                 {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
               </select>
             </div>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama Layanan</label><input type="text" value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} /></div>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi</label><textarea rows={2} value={form.description} onChange={e => set('description', e.target.value)} className={`${inputClass} resize-none`} /></div>
+
+            <ImageUploadField 
+              label="Foto Layanan Watersport" 
+              value={form.image} 
+              onChange={val => set('image', val)} 
+            />
+
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama Layanan *</label><input type="text" required value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} placeholder="Contoh: Paddle Board, Banana Boat..." /></div>
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi Layanan</label><textarea rows={2} value={form.description} onChange={e => set('description', e.target.value)} className={`${inputClass} resize-none`} placeholder="Deskripsi serunya wahana..." /></div>
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Detail / Include (Pisahkan dengan baris baru)</label><textarea rows={3} value={form.details || ''} onChange={e => set('details', e.target.value)} placeholder="Guide Profesional&#10;Pelampung&#10;Air Mineral" className={`${inputClass} resize-none`} /></div>
+            
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Harga (Rp)</label>
@@ -425,18 +697,20 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                   value={form.price ? Number(form.price).toLocaleString('id-ID') : ''} 
                   onChange={e => {
                     const raw = e.target.value.replace(/\D/g, '');
-                    set('price', raw ? parseInt(raw, 10) : '');
+                    set('price', raw ? parseInt(raw, 10) : 0);
                   }} 
                   placeholder="0"
                   className={inputClass} 
                 />
               </div>
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Durasi</label><input type="text" value={form.duration} onChange={e => set('duration', e.target.value)} className={inputClass} /></div>
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon</label><input type="text" value={form.icon} onChange={e => set('icon', e.target.value)} className={inputClass} /></div>
+              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Durasi</label><input type="text" value={form.duration} onChange={e => set('duration', e.target.value)} className={inputClass} placeholder="30 menit" /></div>
+              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon</label><input type="text" value={form.icon} onChange={e => set('icon', e.target.value)} className={inputClass} placeholder="🏄" /></div>
             </div>
           </>)}
+
+          {/* TAB PROMO */}
           {tab === 'promos' && (<>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Judul Promo</label><input type="text" value={form.title} onChange={e => set('title', e.target.value)} className={inputClass} placeholder="DISKON 30%" /></div>
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Judul Promo *</label><input type="text" required value={form.title} onChange={e => set('title', e.target.value)} className={inputClass} placeholder="DISKON 30%" /></div>
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Subtitle (Kategori)</label><input type="text" value={form.subtitle} onChange={e => set('subtitle', e.target.value)} className={inputClass} placeholder="Jetski Adventure" /></div>
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi</label><textarea rows={2} value={form.desc} onChange={e => set('desc', e.target.value)} className={`${inputClass} resize-none`} /></div>
             <div className="grid grid-cols-2 gap-4">
@@ -454,10 +728,12 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon (Emoji)</label><input type="text" value={form.icon} onChange={e => set('icon', e.target.value)} className={inputClass} /></div>
             </div>
           </>)}
+
+          {/* TAB TESTIMONI */}
           {tab === 'testimonials' && (<>
             <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama</label><input type="text" value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} /></div>
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Peran</label><input type="text" value={form.role} onChange={e => set('role', e.target.value)} className={inputClass} /></div>
+              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama Tamu *</label><input type="text" required value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} /></div>
+              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Peran / Asal Kota</label><input type="text" value={form.role} onChange={e => set('role', e.target.value)} className={inputClass} placeholder="Wisatawan Surabaya" /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Avatar (Emoji)</label><input type="text" value={form.avatar} onChange={e => set('avatar', e.target.value)} className={inputClass} /></div>
@@ -467,25 +743,42 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                 </select>
               </div>
             </div>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Testimoni</label><textarea rows={3} value={form.text} onChange={e => set('text', e.target.value)} className={`${inputClass} resize-none`} /></div>
+            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Ulasan / Testimoni *</label><textarea rows={3} required value={form.text} onChange={e => set('text', e.target.value)} className={`${inputClass} resize-none`} /></div>
           </>)}
+
+          {/* TAB GALERI */}
           {tab === 'gallery' && (<>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Image URL (src)</label><input type="text" value={form.src} onChange={e => set('src', e.target.value)} className={inputClass} /></div>
-            <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Alt Text (Judul)</label><input type="text" value={form.alt} onChange={e => set('alt', e.target.value)} className={inputClass} /></div>
+            <ImageUploadField 
+              label="Foto Galeri" 
+              value={form.src} 
+              onChange={val => set('src', val)} 
+            />
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Grid Span (Opsional)</label>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Judul Foto / Alt Text *</label>
+              <input 
+                type="text" 
+                required 
+                value={form.alt} 
+                onChange={e => set('alt', e.target.value)} 
+                className={inputClass} 
+                placeholder="Contoh: Keseruan Bermain Jetski di Pantai Boom" 
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Tata Letak Grid Span (Opsional)</label>
               <select value={form.span} onChange={e => set('span', e.target.value)} className={`${inputClass} bg-white`}>
-                <option value="">Normal</option>
+                <option value="">Normal (1 Kotak)</option>
                 <option value="col-span-2">Lebar 2 Kolom</option>
                 <option value="row-span-2">Tinggi 2 Baris</option>
-                <option value="col-span-2 row-span-2">Lebar 2 Kolom & Tinggi 2 Baris</option>
+                <option value="col-span-2 row-span-2">Lebar 2 Kolom & Tinggi 2 Baris (Besar)</option>
               </select>
             </div>
           </>)}
         </div>
-        <div className="flex gap-3 p-6 border-t border-gray-100 sticky bottom-0 bg-white rounded-b-2xl">
-          <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50">Batal</button>
-          <button onClick={handleSubmit} className="flex-1 btn btn-cyan py-2.5 text-sm">{isEdit ? 'Simpan' : 'Tambah'}</button>
+
+        <div className="flex gap-3 p-6 border-t border-gray-100 sticky bottom-0 bg-white rounded-b-3xl">
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 cursor-pointer">Batal</button>
+          <button onClick={handleSubmit} className="flex-1 btn btn-cyan py-2.5 text-sm cursor-pointer">{isEdit ? 'Simpan Perubahan' : 'Tambahkan'}</button>
         </div>
       </div>
     </div>

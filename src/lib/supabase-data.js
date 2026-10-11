@@ -596,13 +596,62 @@ export async function deleteLoyaltyReward(id) {
 // ========================
 // GPS & NAVIGATION
 // ========================
+const DEFAULT_GPS_ROUTES = [
+  {
+    id: 'route-1',
+    name: 'Rute Aman: Pantai Boom - Pulau Santen',
+    description: 'Rute yang sangat direkomendasikan untuk pemula. Ombak tenang.',
+    color: '#10B981',
+    path_data: [
+      [-8.204555, 114.385455],
+      [-8.209876, 114.391234],
+      [-8.214532, 114.393456],
+      [-8.220111, 114.392111]
+    ],
+    active: true
+  },
+  {
+    id: 'route-2',
+    name: 'Rute Eksplorasi: Selat Bali Cruise',
+    description: 'Sensasi melaju kencang di perairan terbuka Selat Bali dengan pemandangan pegunungan.',
+    color: '#3B82F6',
+    path_data: [
+      [-8.204555, 114.385455],
+      [-8.201200, 114.398000],
+      [-8.208500, 114.405000],
+      [-8.218000, 114.398000]
+    ],
+    active: true
+  }
+];
+
 export async function getGpsRoutes() {
-  const { data, error } = await supabase
-    .from('gps_routes')
-    .select('*')
-    .order('created_at', { ascending: true });
-  if (error) { console.error('getGpsRoutes error:', error); return []; }
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('gps_routes')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (!error && data && data.length > 0) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_gps_routes', JSON.stringify(data));
+      }
+      return data;
+    }
+  } catch (err) {
+    console.warn('getGpsRoutes supabase err:', err);
+  }
+
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('admin_gps_routes');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    localStorage.setItem('admin_gps_routes', JSON.stringify(DEFAULT_GPS_ROUTES));
+  }
+  return DEFAULT_GPS_ROUTES;
 }
 
 export async function upsertGpsRoute(route) {
@@ -614,18 +663,67 @@ export async function upsertGpsRoute(route) {
     active: route.active !== false
   };
 
-  if (route.id && typeof route.id === 'string' && route.id.includes('-')) {
-    const { data, error } = await supabase.from('gps_routes').update(payload).eq('id', route.id).select().single();
-    if (error) console.error('updateGpsRoute error:', error); return data;
-  } else {
-    const { data, error } = await supabase.from('gps_routes').insert(payload).select().single();
-    if (error) console.error('insertGpsRoute error:', error); return data;
+  let savedData = null;
+
+  try {
+    if (route.id && typeof route.id === 'string' && route.id.includes('-') && !route.id.startsWith('route-')) {
+      const { data, error } = await supabase.from('gps_routes').update(payload).eq('id', route.id).select().single();
+      if (!error && data) savedData = data;
+    } else {
+      const { data, error } = await supabase.from('gps_routes').insert(payload).select().single();
+      if (!error && data) savedData = data;
+    }
+  } catch (err) {
+    console.warn('upsertGpsRoute error:', err);
   }
+
+  // Fallback to localStorage
+  if (!savedData && typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_gps_routes') || JSON.stringify(DEFAULT_GPS_ROUTES));
+    const isEdit = !!route.id;
+    const targetId = isEdit ? route.id : `route-${Date.now()}`;
+    const newObj = {
+      ...payload,
+      id: targetId,
+      created_at: route.created_at || new Date().toISOString()
+    };
+
+    let updatedList;
+    if (isEdit) {
+      updatedList = existing.map(item => item.id === targetId ? newObj : item);
+      if (!updatedList.some(item => item.id === targetId)) updatedList.push(newObj);
+    } else {
+      updatedList = [...existing, newObj];
+    }
+    localStorage.setItem('admin_gps_routes', JSON.stringify(updatedList));
+    savedData = newObj;
+  } else if (savedData && typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_gps_routes') || '[]');
+    const isEdit = existing.some(item => item.id === savedData.id);
+    const updatedList = isEdit
+      ? existing.map(item => item.id === savedData.id ? savedData : item)
+      : [...existing, savedData];
+    localStorage.setItem('admin_gps_routes', JSON.stringify(updatedList));
+  }
+
+  return savedData;
 }
 
 export async function deleteGpsRoute(id) {
-  const { error } = await supabase.from('gps_routes').delete().eq('id', id);
-  if (error) console.error('deleteGpsRoute error:', error); return !error;
+  try {
+    if (typeof id === 'string' && !id.startsWith('route-')) {
+      await supabase.from('gps_routes').delete().eq('id', id);
+    }
+  } catch (err) {
+    console.warn('deleteGpsRoute error:', err);
+  }
+
+  if (typeof window !== 'undefined') {
+    const existing = JSON.parse(localStorage.getItem('admin_gps_routes') || '[]');
+    const filtered = existing.filter(item => item.id !== id);
+    localStorage.setItem('admin_gps_routes', JSON.stringify(filtered));
+  }
+  return true;
 }
 
 export async function getGpsGeofences() {
