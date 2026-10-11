@@ -76,7 +76,7 @@ export const translations = {
       viewAll: 'Lihat Semua'
     },
     cta: {
-      title: 'Siap Bermain Jetski? 🏄',
+      title: 'Siap Bermain Jetski?',
       desc: 'Daftar sekarang dan dapatkan penawaran terbaik untuk pengalaman watersport yang tak terlupakan di Banyuwangi!',
       btnRegister: 'Daftar Gratis',
       btnLogin: 'Login & Book'
@@ -160,7 +160,7 @@ export const translations = {
       viewAll: 'View All'
     },
     cta: {
-      title: 'Ready for Jetskiing? 🏄',
+      title: 'Ready for Jetskiing?',
       desc: 'Register now and get the best offers for an unforgettable watersport experience in Banyuwangi!',
       btnRegister: 'Register for Free',
       btnLogin: 'Login & Book'

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import { MapPin, Phone, Mail, Waves, Shield } from 'lucide-react';
 import { COMPANY } from '@/lib/data';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -22,8 +22,8 @@ export default function Footer() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl gradient-ocean flex items-center justify-center text-white font-black text-lg">
-                  🌊
+                <div className="w-10 h-10 rounded-xl gradient-ocean flex items-center justify-center text-white">
+                  <Waves size={22} className="text-white" />
                 </div>
                 <div>
                   <span className="font-extrabold text-white text-lg block leading-tight">Banyuwangi</span>
@@ -121,8 +121,8 @@ export default function Footer() {
             <div className="flex items-center gap-6 text-xs text-gray-500">
               <Link href="#" className="hover:text-gray-300 transition-colors">Kebijakan Privasi</Link>
               <Link href="#" className="hover:text-gray-300 transition-colors">Syarat & Ketentuan</Link>
-              <Link href="/admin/login" className="text-cyan-400/70 hover:text-cyan-300 transition-colors flex items-center gap-1 font-medium">
-                <span>🔐</span> Portal Admin
+              <Link href="/admin/login" className="text-cyan-400/70 hover:text-cyan-300 transition-colors flex items-center gap-1.5 font-medium">
+                <Shield size={13} className="text-cyan-400" /> Portal Admin
               </Link>
             </div>
           </div>

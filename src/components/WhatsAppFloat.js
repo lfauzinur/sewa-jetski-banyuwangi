@@ -29,7 +29,7 @@ export default function WhatsAppFloat() {
           rel="noopener noreferrer"
           className="block w-full text-center bg-[#25D366] text-white font-bold text-sm py-2.5 rounded-xl hover:bg-[#20BD5A] transition-colors"
         >
-          Mulai Chat 💬
+          Mulai Chat
         </a>
       </div>
 

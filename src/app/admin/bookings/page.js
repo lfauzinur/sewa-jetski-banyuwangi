@@ -336,7 +336,7 @@ export default function AdminBookings() {
                   <div className="space-y-1.5">
                     {selectedBooking.addons.map((ad, idx) => (
                       <div key={idx} className="flex justify-between items-center bg-amber-50/80 p-2 rounded-xl text-xs border border-amber-200/60">
-                        <span className="font-bold text-amber-900">✨ {ad.name}</span>
+                        <span className="font-bold text-amber-900 flex items-center gap-1"><Sparkles size={12} /> {ad.name}</span>
                         <span className="text-amber-700 font-bold">+Rp {Number(ad.price).toLocaleString('id-ID')}</span>
                       </div>
                     ))}

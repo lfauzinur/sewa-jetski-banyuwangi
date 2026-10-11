@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Lock, Eye, EyeOff, ShieldCheck, ArrowLeft, Sparkles, KeyRound, Mail } from 'lucide-react';
+import { Lock, Eye, EyeOff, ShieldCheck, ArrowLeft, Sparkles, KeyRound, Mail, Waves, Zap, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function AdminLoginPage() {
@@ -134,8 +134,8 @@ export default function AdminLoginPage() {
           
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white text-3xl shadow-lg shadow-cyan-500/20 mx-auto mb-4 border border-white/20">
-              🌊
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 mx-auto mb-4 border border-white/20">
+              <Waves size={32} className="text-white" />
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-[11px] font-bold tracking-widest uppercase mb-2">
               <ShieldCheck size={13} /> Admin Portal
@@ -157,9 +157,9 @@ export default function AdminLoginPage() {
               type="button"
               onClick={handleInstantLogin}
               disabled={isLoading}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-gray-950 text-xs font-extrabold shadow-md flex-shrink-0 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-gray-950 text-xs font-extrabold shadow-md flex-shrink-0 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-1.5"
             >
-              🚀 1-Klik Masuk
+              <Zap size={14} className="fill-current" /> 1-Klik Masuk
             </button>
           </div>
 
@@ -207,8 +207,9 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="bg-red-500/20 border border-red-400/40 text-red-200 px-4 py-3 rounded-xl text-xs sm:text-sm font-medium animate-shake">
-                ⚠️ {error}
+              <div className="bg-red-500/20 border border-red-400/40 text-red-200 px-4 py-3 rounded-xl text-xs sm:text-sm font-medium animate-shake flex items-center gap-2">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 

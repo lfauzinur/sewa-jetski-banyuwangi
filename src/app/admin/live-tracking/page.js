@@ -132,7 +132,7 @@ export default function LiveTrackingPage() {
   function handleStartDrawingMode() {
     setIsDrawing(true);
     setDrawingPoints([]);
-    showToast('📍 Mode Tarik Rute Aktif: Klik pada peta laut untuk membuat jalur!');
+    showToast('Mode Tarik Rute Aktif: Klik pada peta laut untuk membuat jalur!');
   }
 
   function handleOpenCreate() {

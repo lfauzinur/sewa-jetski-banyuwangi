@@ -16,7 +16,8 @@ import {
   PlusSquare,
   Gift,
   Map,
-  MapPin
+  MapPin,
+  Waves
 } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
@@ -77,7 +78,9 @@ export default function AdminLayout({ children }) {
       `}>
         <div className="p-6 flex justify-between items-center">
           <Link href="/admin" className="flex items-center gap-3 text-white">
-            <div className="w-8 h-8 rounded-lg gradient-ocean flex items-center justify-center text-sm">🌊</div>
+            <div className="w-8 h-8 rounded-lg gradient-ocean flex items-center justify-center text-white">
+              <Waves size={16} />
+            </div>
             <div>
               <span className="font-extrabold text-sm block leading-tight">Admin Panel</span>
               <span className="text-cyan-300 text-[10px] uppercase tracking-widest font-semibold">Banyuwangi</span>

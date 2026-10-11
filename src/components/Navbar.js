@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Phone, LogIn } from 'lucide-react';
+import { Menu, X, Phone, LogIn, Waves } from 'lucide-react';
 import { COMPANY } from '@/lib/data';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -42,8 +42,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl gradient-ocean flex items-center justify-center text-white font-black text-lg shadow-md">
-              🌊
+            <div className="w-10 h-10 rounded-xl gradient-ocean flex items-center justify-center text-white shadow-md">
+              <Waves size={22} className="text-white" />
             </div>
             <div className="hidden sm:block">
               <span className={`font-extrabold text-lg leading-tight block ${scrolled ? 'text-[var(--teal)]' : 'text-white'}`}>

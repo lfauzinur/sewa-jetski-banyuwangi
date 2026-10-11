@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2, Navigation } from 'lucide-react';
+import ThemeIcon from '@/components/ThemeIcon';
 import { jetskiUnits, articles as fallbackArticles, watersportServices as fallbackServices } from '@/lib/data';
 import { getServices, getArticles, getPromos } from '@/lib/supabase-data';
 import { supabase } from '@/lib/supabase';
 
 const defaultPromos = [
-  { id: 1, title: 'BELI 1\nGRATIS 1', subtitle: 'Jetski Adventure', desc: 'Ajak teman & keluarga! Beli 1 tiket, gratis 1 tiket lagi. Berlaku weekdays.', bg: 'bg-blue-500', icon: '🎫' },
-  { id: 2, title: 'PAKET VOUCHER\nLANGGANAN EKSKLUSIF', subtitle: 'Member VIP', desc: 'Hemat Lebih Banyak Setiap Hari! Nikmati Diskon Mingguan.', bg: 'bg-cyan-500', icon: '🎟️' },
+  { id: 1, title: 'BELI 1\nGRATIS 1', subtitle: 'Jetski Adventure', desc: 'Ajak teman & keluarga! Beli 1 tiket, gratis 1 tiket lagi. Berlaku weekdays.', bg: 'bg-blue-500', icon: 'gift' },
+  { id: 2, title: 'PAKET VOUCHER\nLANGGANAN EKSKLUSIF', subtitle: 'Member VIP', desc: 'Hemat Lebih Banyak Setiap Hari! Nikmati Diskon Mingguan.', bg: 'bg-cyan-500', icon: 'ticket' },
 ];
 
 export default function MemberHome() {
@@ -210,7 +211,9 @@ export default function MemberHome() {
               <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-xl"></div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="bg-white/20 p-1.5 rounded-lg text-white text-xs backdrop-blur-sm">{promo.icon}</div>
+                  <div className="bg-white/20 p-1.5 rounded-lg text-white text-xs backdrop-blur-sm flex items-center justify-center">
+                    <ThemeIcon name={promo.icon || 'ticket'} size={14} className="text-white" />
+                  </div>
                   <span className="text-white text-[10px] font-bold tracking-widest uppercase">{promo.subtitle}</span>
                 </div>
                 <h3 className="text-white text-xl font-black leading-tight drop-shadow-md whitespace-pre-line">{promo.title}</h3>

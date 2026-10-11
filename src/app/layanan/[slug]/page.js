@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Clock, Phone, Bell, Waves, Sparkles, ChevronRight } from 'lucide-react';
+import ThemeIcon from '@/components/ThemeIcon';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
@@ -11,35 +12,35 @@ import { watersportServices, COMPANY, formatCurrency, getWhatsAppLink } from '@/
 
 const serviceExtras = {
   'banana-boat': {
-    emoji: '🍌',
+    icon: 'ship',
     color: 'from-yellow-400 to-orange-500',
     bgSoft: 'bg-yellow-50',
     textColor: 'text-yellow-600',
     highlights: ['Cocok untuk keluarga & grup', 'Kapasitas 4-8 orang', 'Air tenang & aman', 'Life jacket tersedia'],
   },
   'parasailing': {
-    emoji: '🪂',
+    icon: 'wind',
     color: 'from-sky-400 to-blue-600',
     bgSoft: 'bg-sky-50',
     textColor: 'text-sky-600',
     highlights: ['Terbang tinggi 50-100m', 'Pemandangan spektakuler', 'Instruktur bersertifikat', 'Foto udara gratis'],
   },
   'snorkeling': {
-    emoji: '🤿',
+    icon: 'compass',
     color: 'from-emerald-400 to-teal-600',
     bgSoft: 'bg-emerald-50',
     textColor: 'text-emerald-600',
     highlights: ['Terumbu karang indah', 'Peralatan lengkap', 'Guide lokal berpengalaman', 'Spot rahasia lokal'],
   },
   'flying-fish': {
-    emoji: '🐠',
+    icon: 'fish',
     color: 'from-violet-400 to-purple-600',
     bgSoft: 'bg-violet-50',
     textColor: 'text-violet-600',
     highlights: ['Sensasi terbang di air', 'Adrenalin tinggi', 'Driver profesional', 'Pengalaman unik'],
   },
   'paket-combo': {
-    emoji: '🎉',
+    icon: 'sparkles',
     color: 'from-rose-400 to-pink-600',
     bgSoft: 'bg-rose-50',
     textColor: 'text-rose-600',
@@ -53,7 +54,7 @@ function ServiceComingSoonContent() {
 
   const service = watersportServices.find(s => s.slug === slug);
   const extras = serviceExtras[slug] || {
-    emoji: '🌊',
+    icon: 'waves',
     color: 'from-cyan-400 to-teal-600',
     bgSoft: 'bg-cyan-50',
     textColor: 'text-cyan-600',
@@ -110,8 +111,8 @@ function ServiceComingSoonContent() {
           </Link>
 
           <div className="max-w-2xl">
-            <div className="text-6xl mb-6 animate-bounce" style={{ animationDuration: '2s' }}>
-              {extras.emoji}
+            <div className="mb-6">
+              <ThemeIcon icon={extras.icon} size={56} className="text-white" />
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
               {service.name}
@@ -214,7 +215,7 @@ function ServiceComingSoonContent() {
               href="/login"
               className="btn btn-cyan text-base px-8 py-3.5 shadow-lg inline-flex items-center gap-2"
             >
-              🏄 Booking Jetski Adventure
+              <Waves size={18} className="inline" /> Booking Jetski Adventure
               <ChevronRight size={16} />
             </Link>
           </div>

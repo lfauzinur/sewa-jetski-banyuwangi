@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, Trash2, Edit3, Power, X, Save } from 'lucide-react';
+import { MapPin, Plus, Trash2, Edit3, Power, X, Save, Phone, Clock } from 'lucide-react';
 import { getBasecamps, createBasecamp, updateBasecamp, deleteBasecamp } from '@/lib/supabase-data';
 
 export default function AdminBasecampsPage() {
@@ -171,8 +171,8 @@ export default function AdminBasecampsPage() {
                     </div>
                     <p className="text-gray-500 text-sm mt-1 line-clamp-2">{bc.address}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                      <span>📞 {bc.phone || '-'}</span>
-                      <span>🕐 {bc.operating_hours || '-'}</span>
+                      <span className="flex items-center gap-1"><Phone size={11} /> {bc.phone || '-'}</span>
+                      <span className="flex items-center gap-1"><Clock size={11} /> {bc.operating_hours || '-'}</span>
                     </div>
                     <p className="text-[10px] text-gray-300 mt-1 font-mono">Lat: {bc.lat}, Lng: {bc.lng}</p>
                   </div>

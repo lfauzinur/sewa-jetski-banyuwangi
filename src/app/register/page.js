@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowLeft, Waves, Zap } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 // Translate Supabase errors to user-friendly Indonesian messages
@@ -81,7 +81,7 @@ export default function RegisterPage() {
         router.push('/member');
       } else {
         // Email confirmation is required
-        setSuccess('Pendaftaran berhasil! 🎉 Silakan cek email Anda untuk konfirmasi akun.');
+        setSuccess('Pendaftaran berhasil! Silakan cek email Anda untuk konfirmasi akun.');
       }
     } catch (err) {
       setError(translateError(err));
@@ -106,13 +106,13 @@ export default function RegisterPage() {
                 <span className="font-extrabold text-lg block leading-tight">Banyuwangi</span>
                 <span className="text-cyan-200 text-[10px] uppercase tracking-widest font-semibold">Watersport</span>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg">🌊</div>
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white"><Waves size={22} /></div>
             </Link>
           </div>
 
           <div className="text-right">
             <h2 className="text-4xl font-extrabold text-white mb-4 leading-tight">
-              Bergabung Bersama Kami! 🌴
+              Bergabung Bersama Kami!
             </h2>
             <p className="text-white/70 max-w-md ml-auto">
               Dapatkan akses mudah untuk booking online, promo spesial, dan pengalaman watersport yang tak terlupakan.
@@ -121,7 +121,7 @@ export default function RegisterPage() {
 
           <div className="flex items-center justify-end gap-4 text-white">
             <span className="text-white/80 text-sm">Daftar kurang dari 1 menit</span>
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg border-2 border-white/30">⚡</div>
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white border-2 border-white/30"><Zap size={20} /></div>
           </div>
         </div>
       </div>

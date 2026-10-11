@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, CreditCard, Building2, QrCode, Plus } from 'lucide-react';
+import { ChevronLeft, CreditCard, Building2, QrCode, Plus, Lightbulb } from 'lucide-react';
 
 const paymentMethods = [
   { id: 1, type: 'bank', name: 'BRI', number: '•••• •••• •••• 4521', icon: <Building2 size={20} /> },
@@ -43,7 +43,7 @@ export default function PaymentMethodsPage() {
 
       <div className="px-6 mt-8">
         <div className="bg-amber-50 rounded-[20px] p-5">
-          <h3 className="font-bold text-amber-800 text-sm mb-1">💡 Info Pembayaran</h3>
+          <h3 className="font-bold text-amber-800 text-sm mb-1 flex items-center gap-1.5"><Lightbulb size={14} /> Info Pembayaran</h3>
           <p className="text-xs text-amber-700 leading-relaxed">
             Kami menerima pembayaran via Transfer Bank (BRI, BCA, Mandiri) dan QRIS. 
             Setiap transaksi akan mendapat kode unik untuk mempermudah verifikasi.

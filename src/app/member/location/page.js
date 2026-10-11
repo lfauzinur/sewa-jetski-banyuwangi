@@ -114,7 +114,7 @@ export default function LocationPage() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-gray-900">{bc.name}</h3>
                 <p className="text-gray-500 text-sm mt-0.5 truncate">{bc.address}</p>
-                <p className="text-xs text-gray-400 mt-1">🕐 {bc.operating_hours || '-'}</p>
+                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Clock size={11} /> {bc.operating_hours || '-'}</p>
               </div>
               <ChevronRight size={20} className="text-gray-300 flex-shrink-0" />
             </button>

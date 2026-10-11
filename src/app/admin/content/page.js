@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, Edit2, Trash2, X, FileText, Layers, MessageSquare, Star, Play, 
-  Image as ImageIcon, Tag, Upload, Check, Sparkles 
+  Image as ImageIcon, Tag, Upload, Check, Sparkles, User 
 } from 'lucide-react';
+import ThemeIcon from '@/components/ThemeIcon';
 import { 
   getServices, upsertService, deleteService, 
   getCategories, upsertCategory, deleteCategory, 
@@ -11,15 +12,15 @@ import {
   getPromos, upsertPromo, deletePromo 
 } from '@/lib/supabase-data';
 
-// Koleksi Gambar Siap Pakai untuk Kemudahan Admin
+// Koleksi Gambar Siap Pakai untuk Kemudahan Admin dengan Icon Senada UI
 const WATERSPORT_PRESETS = [
-  { name: 'Paddle Board', src: '/images/paddle-board.png', icon: '🏄' },
-  { name: 'Jetski WaveRunner', src: '/images/hero-jetski.png', icon: '⚡' },
-  { name: 'Banana Boat', src: '/images/gallery-banana-boat.png', icon: '🍌' },
-  { name: 'Parasailing', src: '/images/gallery-parasailing.png', icon: '🪂' },
-  { name: 'Pantai & Sunset', src: '/images/gallery-sunset.png', icon: '🌅' },
-  { name: 'Pulau / Aerial View', src: '/images/gallery-aerial.png', icon: '🏝️' },
-  { name: 'Group Wisatawan', src: '/images/gallery-group.png', icon: '👥' },
+  { name: 'Paddle Board', src: '/images/paddle-board.png', icon: 'waves' },
+  { name: 'Jetski WaveRunner', src: '/images/hero-jetski.png', icon: 'zap' },
+  { name: 'Banana Boat', src: '/images/gallery-banana-boat.png', icon: 'ship' },
+  { name: 'Parasailing', src: '/images/gallery-parasailing.png', icon: 'wind' },
+  { name: 'Pantai & Sunset', src: '/images/gallery-sunset.png', icon: 'sun' },
+  { name: 'Pulau / Aerial View', src: '/images/gallery-aerial.png', icon: 'palmtree' },
+  { name: 'Group Wisatawan', src: '/images/gallery-group.png', icon: 'users' },
 ];
 
 export default function AdminContent() {
@@ -262,10 +263,15 @@ export default function AdminContent() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {promos.map(item => (
             <div key={item.id} className="rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col">
-              <div className={`${item.bg || 'bg-blue-500'} p-5 h-36 relative overflow-hidden`}>
+              <div className={`${item.bg || 'bg-blue-500'} p-5 h-36 relative overflow-hidden flex flex-col justify-between`}>
                 <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-lg"></div>
-                <span className="text-xs text-white/70 font-bold uppercase tracking-widest">{item.subtitle}</span>
-                <h3 className="text-white text-lg font-black mt-1 whitespace-pre-line leading-tight">{item.title}</h3>
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/20 p-1.5 rounded-lg text-white text-xs backdrop-blur-sm flex items-center justify-center">
+                    <ThemeIcon name={item.icon || 'ticket'} size={14} className="text-white" />
+                  </div>
+                  <span className="text-xs text-white/80 font-bold uppercase tracking-widest">{item.subtitle}</span>
+                </div>
+                <h3 className="text-white text-lg font-black whitespace-pre-line leading-tight">{item.title}</h3>
               </div>
               <div className="bg-white p-4 flex flex-col flex-1">
                 <p className="text-gray-500 text-xs line-clamp-2 flex-1">{item.desc}</p>
@@ -302,13 +308,19 @@ export default function AdminContent() {
                 </div>
                 <div className="p-4 flex flex-col flex-1">
                   <h3 className="font-bold text-gray-900 text-base">{item.name}</h3>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {item.icon} {item.duration} • <span className="font-bold text-[var(--teal)]">Rp {(item.price || 0).toLocaleString('id-ID')}</span>
-                  </p>
+                  <div className="text-gray-500 text-xs mt-1.5 flex items-center gap-1.5 flex-wrap">
+                    <span className="w-5 h-5 rounded-md bg-cyan-50 text-[var(--cyan)] flex items-center justify-center shrink-0">
+                      <ThemeIcon name={item.icon || 'waves'} size={12} />
+                    </span>
+                    <span>{item.duration}</span>
+                    <span>•</span>
+                    <span className="font-bold text-[var(--teal)]">Rp {(item.price || 0).toLocaleString('id-ID')}</span>
+                  </div>
                   {item.details && (
-                    <p className="text-gray-400 text-[11px] mt-2 line-clamp-2">
-                      📋 {item.details.split('\n').join(', ')}
-                    </p>
+                    <div className="text-gray-400 text-[11px] mt-2 line-clamp-2 flex items-start gap-1">
+                      <FileText size={11} className="text-gray-400 shrink-0 mt-0.5" />
+                      <span>{item.details.split('\n').join(', ')}</span>
+                    </div>
                   )}
                   <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                     <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
@@ -352,7 +364,7 @@ export default function AdminContent() {
                   {item.avatar && (item.avatar.startsWith('data:') || item.avatar.startsWith('http') || item.avatar.startsWith('/')) ? (
                     <img src={item.avatar} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span>{item.avatar || '👤'}</span>
+                    <User size={18} className="text-gray-400" />
                   )}
                 </div>
                 <div>
@@ -594,7 +606,11 @@ function ImageUploadField({ label = 'Foto / Gambar', value, onChange, presets = 
                       : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
                   }`}
                 >
-                  <span>{preset.icon || '📷'}</span>
+                  <span className={`w-5 h-5 rounded-lg flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-emerald-100 text-emerald-700' : 'bg-cyan-50 text-[var(--cyan)]'
+                  }`}>
+                    <ThemeIcon name={preset.icon || 'waves'} size={12} />
+                  </span>
                   <span>{preset.name}</span>
                   {isSelected && <Check size={12} className="text-emerald-600" />}
                 </button>
@@ -651,7 +667,6 @@ function AvatarUploadField({ value, onChange }) {
     reader.readAsDataURL(file);
   };
 
-  const EMOJI_OPTIONS = ['🧑', '👩', '🧔', '🧕', '👨‍🦰', '👱‍♀️', '🤠', '😎', '🏖️'];
 
   return (
     <div className="space-y-2">
@@ -670,7 +685,7 @@ function AvatarUploadField({ value, onChange }) {
           {isImage ? (
             <img src={value} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
-            <span>{value || '👤'}</span>
+            <User size={24} className="text-gray-400" />
           )}
           {isProcessing && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center">
@@ -698,10 +713,10 @@ function AvatarUploadField({ value, onChange }) {
             {isImage && (
               <button
                 type="button"
-                onClick={() => onChange('🧑')}
+                onClick={() => onChange('')}
                 className="text-xs font-bold text-rose-500 hover:underline px-1.5 py-1 cursor-pointer"
               >
-                Gunakan Emoji
+                Hapus Foto
               </button>
             )}
           </div>
@@ -711,28 +726,6 @@ function AvatarUploadField({ value, onChange }) {
         </div>
       </div>
 
-      {/* Quick Emoji Selection */}
-      <div className="pt-1">
-        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-1">
-          Atau Pilih Emoji Avatar:
-        </span>
-        <div className="flex flex-wrap gap-1.5">
-          {EMOJI_OPTIONS.map((em, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => onChange(em)}
-              className={`w-8 h-8 rounded-xl text-sm flex items-center justify-center transition-all cursor-pointer border ${
-                value === em 
-                  ? 'bg-blue-100 border-blue-400 scale-110 shadow-xs' 
-                  : 'bg-white border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {em}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -743,10 +736,10 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
   const getDefaults = () => {
     if (tab === 'articles') return { id: '', title: '', slug: '', excerpt: '', date: new Date().toISOString().split('T')[0], category: 'Tips & Trik', image: '/images/hero-jetski.png', readTime: '5 menit' };
     if (tab === 'categories') return { id: '', name: '', slug: '', description: '', image: '/images/hero-jetski.png' };
-    if (tab === 'services') return { id: '', name: '', slug: '', description: '', price: 0, duration: '30 menit', image: '/images/hero-jetski.png', icon: '🏄', details: 'Guide Profesional\nPelampung\nAir Mineral', category: categories.length > 0 ? categories[0].slug : 'safari-packages' };
-    if (tab === 'promos') return { id: '', title: '', subtitle: '', desc: '', bg: 'bg-blue-500', icon: '🎫' };
+    if (tab === 'services') return { id: '', name: '', slug: '', description: '', price: 0, duration: '30 menit', image: '/images/hero-jetski.png', icon: 'waves', details: 'Guide Profesional\nPelampung\nAir Mineral', category: categories.length > 0 ? categories[0].slug : 'safari-packages' };
+    if (tab === 'promos') return { id: '', title: '', subtitle: '', desc: '', bg: 'bg-blue-500', icon: 'ticket' };
     if (tab === 'gallery') return { id: '', src: '/images/gallery-group.png', alt: '', span: '' };
-    return { id: '', name: '', role: '', avatar: '👤', rating: 5, text: '' };
+    return { id: '', name: '', role: '', avatar: '', rating: 5, text: '' };
   };
 
   const [form, setForm] = useState(item || getDefaults());
@@ -838,7 +831,28 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                 />
               </div>
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Durasi</label><input type="text" value={form.duration} onChange={e => set('duration', e.target.value)} className={inputClass} placeholder="30 menit" /></div>
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon</label><input type="text" value={form.icon} onChange={e => set('icon', e.target.value)} className={inputClass} placeholder="🏄" /></div>
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon Layanan</label>
+                <div className="relative">
+                  <select 
+                    value={form.icon || 'waves'} 
+                    onChange={e => set('icon', e.target.value)} 
+                    className={`${inputClass} bg-white pl-9 text-xs`}
+                  >
+                    <option value="waves">Waves (Ombak / Air)</option>
+                    <option value="zap">Zap (Speed / Jetski)</option>
+                    <option value="ship">Boat (Banana Boat)</option>
+                    <option value="wind">Wind (Parasailing)</option>
+                    <option value="compass">Compass (Safari Tour)</option>
+                    <option value="sun">Sun (Sunset View)</option>
+                    <option value="users">Users (Group)</option>
+                    <option value="sparkles">Sparkles (VIP)</option>
+                  </select>
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--cyan)]">
+                    <ThemeIcon name={form.icon || 'waves'} size={15} />
+                  </div>
+                </div>
+              </div>
             </div>
           </>)}
 
@@ -859,7 +873,26 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                   <option value="bg-orange-500">Oranye</option>
                 </select>
               </div>
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon (Emoji)</label><input type="text" value={form.icon} onChange={e => set('icon', e.target.value)} className={inputClass} /></div>
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon Badge Promo</label>
+                <div className="relative">
+                  <select 
+                    value={form.icon || 'ticket'} 
+                    onChange={e => set('icon', e.target.value)} 
+                    className={`${inputClass} bg-white pl-9 text-xs`}
+                  >
+                    <option value="ticket">Ticket (Tiket & Voucher)</option>
+                    <option value="percent">Percent (Diskon %)</option>
+                    <option value="gift">Gift (Beli 1 Gratis 1 / Hadiah)</option>
+                    <option value="sparkles">Sparkles (Spesial VIP)</option>
+                    <option value="zap">Zap (Flash Sale / Kilat)</option>
+                    <option value="tag">Tag (Penawaran Khusus)</option>
+                  </select>
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--cyan)]">
+                    <ThemeIcon name={form.icon || 'ticket'} size={15} />
+                  </div>
+                </div>
+              </div>
             </div>
           </>)}
 

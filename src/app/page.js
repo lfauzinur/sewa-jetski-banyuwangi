@@ -1,14 +1,15 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   Star, MapPin, Phone, Shield, Award, Users, Clock, ChevronRight, ChevronLeft,
-  ArrowRight, Waves, Anchor, Play, Calendar, Sparkles
+  ArrowRight, Waves, Anchor, Play, Calendar, Sparkles, Tag, Camera, BookOpen, User
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import SplashScreen from '@/components/SplashScreen';
 import {
   COMPANY, watersportServices, watersportCategories, testimonials, articles as staticArticles,
   formatCurrency, formatDate
@@ -107,8 +108,8 @@ function HeroSection() {
             {/* Price Card */}
             <div className="absolute bottom-20 right-0 card-glass p-5 rounded-2xl animate-float delay-400 shadow-xl">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-[var(--amber)]/20 flex items-center justify-center">
-                  <span className="text-2xl">🏷️</span>
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                  <Tag size={22} />
                 </div>
                 <div>
                   <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">{t('hero.startFrom')}</span>
@@ -124,7 +125,9 @@ function HeroSection() {
               </div>
               <p className="text-xs text-gray-600 mb-1">&quot;Pengalaman luar biasa!&quot;</p>
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-cyan-100 flex items-center justify-center text-xs">👩</div>
+                <div className="w-6 h-6 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700">
+                  <User size={12} />
+                </div>
                 <span className="text-xs font-semibold text-gray-700">Rina S.</span>
               </div>
             </div>
@@ -388,7 +391,7 @@ function GallerySection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-xs uppercase tracking-widest mb-4">
-            📸 {t('gallery.badge')}
+            <Camera size={15} /> {t('gallery.badge')}
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4">
             {t('gallery.title')}
@@ -458,7 +461,7 @@ function TestimonialsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="inline-flex items-center gap-2 text-cyan-200 font-bold text-xs uppercase tracking-widest mb-4">
-            ⭐ {t('testimonials.badge')}
+            <Star size={13} className="text-cyan-200 fill-cyan-200" /> {t('testimonials.badge')}
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4">
             {t('testimonials.title')}
@@ -492,7 +495,7 @@ function TestimonialsSection() {
                         {testi.avatar && (testi.avatar.startsWith('data:') || testi.avatar.startsWith('http') || testi.avatar.startsWith('/')) ? (
                           <img src={testi.avatar} alt={testi.name} className="w-full h-full object-cover" />
                         ) : (
-                          <span>{testi.avatar || '👤'}</span>
+                          <User size={18} className="text-white/80" />
                         )}
                       </div>
                       <div>
@@ -543,7 +546,7 @@ function ArticlesSection() {
         <div className="flex items-end justify-between mb-12">
           <div>
             <span className="inline-flex items-center gap-2 text-[var(--cyan)] font-bold text-xs uppercase tracking-widest mb-4">
-              📰 {t('articles.badge')}
+              <BookOpen size={15} /> {t('articles.badge')}
             </span>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900">
               {t('articles.title')}
@@ -627,20 +630,37 @@ function CTASection() {
    MAIN LANDING PAGE
    ═══════════════════════════════════════ */
 export default function LandingPage() {
+  const [showSplash, setShowSplash] = useState(false);
+
+  useEffect(() => {
+    // Only show splash on first visit per session
+    if (!sessionStorage.getItem('splash_shown')) {
+      setShowSplash(true);
+    }
+  }, []);
+
+  const handleSplashFinish = useCallback(() => {
+    setShowSplash(false);
+    sessionStorage.setItem('splash_shown', '1');
+  }, []);
+
   return (
-    <main className="min-h-screen">
-      <Navbar />
-      <HeroSection />
-      <BenefitsSection />
-      <ServicesSection />
-      <VideoSection />
-      <AboutSection />
-      <GallerySection />
-      <TestimonialsSection />
-      <ArticlesSection />
-      <CTASection />
-      <Footer />
-      <WhatsAppFloat />
-    </main>
+    <>
+      {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
+      <main className="min-h-screen">
+        <Navbar />
+        <HeroSection />
+        <BenefitsSection />
+        <ServicesSection />
+        <VideoSection />
+        <AboutSection />
+        <GallerySection />
+        <TestimonialsSection />
+        <ArticlesSection />
+        <CTASection />
+        <Footer />
+        <WhatsAppFloat />
+      </main>
+    </>
   );
 }

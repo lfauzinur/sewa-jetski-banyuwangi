@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, Waves, User, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 // Translate Supabase errors to user-friendly Indonesian messages
@@ -108,7 +108,9 @@ export default function LoginPage() {
         <div className="absolute inset-0 gradient-ocean opacity-80" />
         <div className="relative z-10 flex flex-col justify-between p-12">
           <Link href="/" className="flex items-center gap-3 text-white">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg">🌊</div>
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
+              <Waves size={22} />
+            </div>
             <div>
               <span className="font-extrabold text-lg block leading-tight">Banyuwangi</span>
               <span className="text-cyan-200 text-[10px] uppercase tracking-widest font-semibold">Watersport</span>
@@ -117,7 +119,7 @@ export default function LoginPage() {
 
           <div>
             <h2 className="text-4xl font-extrabold text-white mb-4 leading-tight">
-              Mulai Petualangan<br />Watersport Anda! 🏄
+              Mulai Petualangan<br />Watersport Anda!
             </h2>
             <p className="text-white/70 max-w-md">
               Login untuk booking jetski, melihat riwayat pesanan, dan mendapatkan penawaran eksklusif.
@@ -126,11 +128,13 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-4">
             <div className="flex -space-x-3">
-              {['👩', '👨', '👩', '👨'].map((a, i) => (
-                <div key={i} className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg border-2 border-white/30">{a}</div>
+              {[0, 1, 2, 3].map((_, i) => (
+                <div key={i} className="w-10 h-10 rounded-full bg-cyan-700/80 flex items-center justify-center text-white border-2 border-white/40 shadow-sm">
+                  <User size={18} />
+                </div>
               ))}
             </div>
-            <span className="text-white/80 text-sm">500+ pelanggan puas</span>
+            <span className="text-white/80 text-sm font-medium">500+ pelanggan puas</span>
           </div>
         </div>
       </div>
@@ -142,7 +146,7 @@ export default function LoginPage() {
             <ArrowLeft size={16} /> Kembali ke Beranda
           </Link>
 
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Selamat Datang! 👋</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Selamat Datang!</h1>
           <p className="text-gray-500 mb-8">Masuk ke akun Anda untuk melanjutkan booking.</p>
 
           {error && (
@@ -220,7 +224,7 @@ export default function LoginPage() {
               href="/admin/login" 
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-[var(--teal)] transition-colors py-1 px-3 rounded-lg hover:bg-gray-50"
             >
-              <span>🔐</span> Masuk ke Panel Pengelola / Admin
+              <ShieldCheck size={14} /> Masuk ke Panel Pengelola / Admin
             </Link>
           </div>
         </div>

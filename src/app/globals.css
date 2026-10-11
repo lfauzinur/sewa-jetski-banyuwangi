@@ -532,3 +532,209 @@ input[type="number"] {
 .animate-scaleIn {
   animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* ══════════════════════════════════════════
+   SPLASH SCREEN
+   ══════════════════════════════════════════ */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.splash-exit {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+/* Ocean gradient background */
+.splash-ocean {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0c1d3d 0%, #0a3358 25%, #0369a1 50%, #0ea5e9 75%, #67e8f9 100%);
+}
+
+/* Animated waves */
+.splash-waves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 35%;
+  z-index: 2;
+}
+.splash-wave {
+  fill: rgba(255,255,255,0.15);
+}
+.splash-wave-1 {
+  fill: rgba(6, 182, 212, 0.4);
+  animation: waveShift 3s ease-in-out infinite alternate;
+}
+.splash-wave-2 {
+  fill: rgba(14, 165, 233, 0.3);
+  animation: waveShift 4s ease-in-out infinite alternate-reverse;
+}
+.splash-wave-3 {
+  fill: rgba(255, 255, 255, 0.12);
+  animation: waveShift 2.5s ease-in-out infinite alternate;
+}
+@keyframes waveShift {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(20px); }
+}
+
+/* Jetski animation */
+.splash-jetski {
+  position: absolute;
+  z-index: 5;
+  bottom: 24%;
+  width: 260px;
+  height: 160px;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+}
+.splash-jetski.enter {
+  transform: translateX(120vw) rotate(-3deg);
+  opacity: 0;
+}
+.splash-jetski.ride {
+  transform: translateX(0) rotate(0deg);
+  animation: jetskiBounce 0.8s ease-in-out infinite alternate;
+}
+.splash-jetski.exit {
+  transform: translateX(-120vw) rotate(3deg);
+  opacity: 0;
+}
+@keyframes jetskiBounce {
+  0% { transform: translateY(0) rotate(-2deg); }
+  100% { transform: translateY(-10px) rotate(2deg); }
+}
+
+.splash-jetski-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.3));
+}
+
+/* Water spray behind jetski */
+.splash-spray {
+  animation: sprayPulse 0.5s ease-in-out infinite alternate;
+}
+@keyframes sprayPulse {
+  0% { opacity: 0.3; transform: translateX(0); }
+  100% { opacity: 0.7; transform: translateX(-8px); }
+}
+
+/* Rider micro-movement */
+.splash-rider {
+  animation: riderLean 1s ease-in-out infinite alternate;
+  transform-origin: 135px 80px;
+}
+@keyframes riderLean {
+  0% { transform: rotate(-1deg); }
+  100% { transform: rotate(1.5deg); }
+}
+
+/* Splash particles */
+.splash-particles {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+}
+.splash-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: particleSplash 1.2s ease-out infinite;
+  animation-delay: var(--delay);
+}
+@keyframes particleSplash {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+  100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
+}
+
+/* Brand text */
+.splash-brand {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-bottom: 100px;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.splash-brand.enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.splash-brand.ride {
+  opacity: 1;
+  transform: translateY(0);
+}
+.splash-brand.exit {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+.splash-logo-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+  animation: logoGlow 2s ease-in-out infinite alternate;
+}
+@keyframes logoGlow {
+  0% { box-shadow: 0 0 20px rgba(6,182,212,0.2); }
+  100% { box-shadow: 0 0 40px rgba(6,182,212,0.5); }
+}
+.splash-title {
+  font-size: 28px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+.splash-subtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* Loading bar */
+.splash-loader {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 10;
+}
+.splash-loader-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #06B6D4, #22D3EE, #67E8F9);
+  border-radius: 4px;
+  animation: loaderProgress 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes loaderProgress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
