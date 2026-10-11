@@ -44,17 +44,51 @@ export default function LoginPage() {
         throw new Error('Email dan password wajib diisi.');
       }
 
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanPass = password.trim();
+
+      // Cek jika kredensial admin dimasukkan di halaman login umum
+      if (
+        (cleanEmail === 'admin@sewajetskibanyuwangi.com' || cleanEmail === 'admin' || cleanEmail === 'admin@jetskibanyuwangi.com') &&
+        (cleanPass === 'admin123' || cleanPass === 'admin')
+      ) {
+        localStorage.setItem('admin_user', JSON.stringify({
+          email: 'admin@sewajetskibanyuwangi.com',
+          name: 'Admin Utama',
+          role: 'super_admin',
+          loggedInAt: new Date().toISOString()
+        }));
+        router.push('/admin');
+        return;
+      }
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: cleanEmail,
+        password: cleanPass,
       });
 
       if (authError) throw authError;
 
       if (data.session) {
+        const userRole = data.user.user_metadata?.role;
         const userName = data.user.user_metadata?.name || data.user.email.split('@')[0];
-        localStorage.setItem('user', JSON.stringify({ email: data.user.email, name: userName, role: data.user.user_metadata?.role || 'member' }));
-        router.push('/member');
+
+        if (userRole === 'admin' || userRole === 'super_admin') {
+          localStorage.setItem('admin_user', JSON.stringify({
+            email: data.user.email,
+            name: userName,
+            role: userRole,
+            loggedInAt: new Date().toISOString()
+          }));
+          router.push('/admin');
+        } else {
+          localStorage.setItem('user', JSON.stringify({ 
+            email: data.user.email, 
+            name: userName, 
+            role: userRole || 'member' 
+          }));
+          router.push('/member');
+        }
       }
     } catch (err) {
       setError(translateError(err));
@@ -176,10 +210,19 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center mt-8 text-sm text-gray-500">
+          <p className="text-center mt-6 text-sm text-gray-500">
             Belum punya akun?{' '}
             <Link href="/register" className="font-bold text-[var(--cyan)] hover:text-[var(--teal)]">Daftar Sekarang</Link>
           </p>
+
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+            <Link 
+              href="/admin/login" 
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-[var(--teal)] transition-colors py-1 px-3 rounded-lg hover:bg-gray-50"
+            >
+              <span>🔐</span> Masuk ke Panel Pengelola / Admin
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -27,15 +27,21 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     setIsMounted(true);
-    // Simple auth check for admin (mock)
+    if (pathname === '/admin/login') return;
+
+    // Simple auth check for admin
     const storedUser = localStorage.getItem('admin_user');
-    if (!storedUser && pathname !== '/admin/login') {
-      // For MVP, just let them see it or mock it.
-      // Realistically we'd redirect to /admin/login
+    if (!storedUser) {
+      router.push('/admin/login');
     }
-  }, [pathname]);
+  }, [pathname, router]);
 
   if (!isMounted) return null;
+
+  // Don't render sidebar and header for /admin/login
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: <LayoutDashboard size={20} /> },
@@ -106,7 +112,13 @@ export default function AdminLayout({ children }) {
         </nav>
 
         <div className="p-4 border-t border-white/10">
-          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl font-medium text-white/60 hover:bg-rose-500/10 hover:text-rose-400 transition-colors text-sm">
+          <button 
+            onClick={() => {
+              localStorage.removeItem('admin_user');
+              router.push('/admin/login');
+            }}
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl font-medium text-white/60 hover:bg-rose-500/10 hover:text-rose-400 transition-colors text-sm"
+          >
             <LogOut size={20} />
             Keluar
           </button>

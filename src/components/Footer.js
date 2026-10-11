@@ -118,9 +118,12 @@ export default function Footer() {
             <p className="text-gray-500 text-xs">
               © 2026 {COMPANY.name}. {t('footer.rights')}.
             </p>
-            <div className="flex gap-6 text-xs text-gray-500">
+            <div className="flex items-center gap-6 text-xs text-gray-500">
               <Link href="#" className="hover:text-gray-300 transition-colors">Kebijakan Privasi</Link>
               <Link href="#" className="hover:text-gray-300 transition-colors">Syarat & Ketentuan</Link>
+              <Link href="/admin/login" className="text-cyan-400/70 hover:text-cyan-300 transition-colors flex items-center gap-1 font-medium">
+                <span>🔐</span> Portal Admin
+              </Link>
             </div>
           </div>
         </div>
