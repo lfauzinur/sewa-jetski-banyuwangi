@@ -348,7 +348,13 @@ export default function AdminContent() {
           {testimonials.map(item => (
             <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg">{item.avatar}</div>
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-lg overflow-hidden shrink-0 border border-gray-200">
+                  {item.avatar && (item.avatar.startsWith('data:') || item.avatar.startsWith('http') || item.avatar.startsWith('/')) ? (
+                    <img src={item.avatar} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{item.avatar || '👤'}</span>
+                  )}
+                </div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-sm">{item.name}</h3>
                   <p className="text-gray-500 text-xs">{item.role}</p>
@@ -603,6 +609,134 @@ function ImageUploadField({ label = 'Foto / Gambar', value, onChange, presets = 
   );
 }
 
+// Komponen Khusus Upload Avatar Testimoni dengan Kompresi Ketat (Maks 160x160 px, ~5-12 KB)
+function AvatarUploadField({ value, onChange }) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const isImage = value && (value.startsWith('data:') || value.startsWith('http') || value.startsWith('/'));
+
+  const handleAvatarFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Mohon pilih file gambar (JPG, PNG, WebP).');
+      return;
+    }
+
+    setIsProcessing(true);
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      const img = new Image();
+      img.onload = () => {
+        // Strict resize to 160x160 square to prevent bloating DB or hosting (<15KB)
+        const canvas = document.createElement('canvas');
+        const targetSize = 160;
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+        const ctx = canvas.getContext('2d');
+
+        // Center square crop
+        const minDim = Math.min(img.width, img.height);
+        const startX = (img.width - minDim) / 2;
+        const startY = (img.height - minDim) / 2;
+
+        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, targetSize, targetSize);
+        // Compress as JPEG 0.75 for ultra-lightweight size (~8KB)
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        onChange(compressedDataUrl);
+        setIsProcessing(false);
+      };
+      img.src = readerEvent.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const EMOJI_OPTIONS = ['🧑', '👩', '🧔', '🧕', '👨‍🦰', '👱‍♀️', '🤠', '😎', '🏖️'];
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
+          Avatar / Foto Tamu
+        </label>
+        <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold border border-emerald-100">
+          Auto-Kompres 160x160px (&lt;15 KB)
+        </span>
+      </div>
+
+      <div className="flex items-center gap-3.5 p-3 bg-gray-50 rounded-2xl border border-gray-100">
+        {/* Circle Avatar Preview */}
+        <div className="relative w-14 h-14 rounded-full bg-white shadow-sm border-2 border-white ring-2 ring-gray-200 overflow-hidden flex items-center justify-center text-2xl flex-shrink-0">
+          {isImage ? (
+            <img src={value} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span>{value || '👤'}</span>
+          )}
+          {isProcessing && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center">
+              <span className="text-[10px] font-bold text-gray-700 animate-pulse">...</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 space-y-1.5 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <input 
+              id="avatar-file-input"
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={handleAvatarFile} 
+            />
+            <label
+              htmlFor="avatar-file-input"
+              className="bg-white hover:bg-gray-100 text-gray-800 text-xs font-bold py-1.5 px-3 rounded-xl cursor-pointer border border-gray-200 shadow-2xs flex items-center gap-1.5 transition-colors"
+            >
+              <Upload size={13} className="text-gray-600" />
+              <span>{isImage ? 'Ganti Foto' : 'Upload Foto Avatar'}</span>
+            </label>
+            {isImage && (
+              <button
+                type="button"
+                onClick={() => onChange('🧑')}
+                className="text-xs font-bold text-rose-500 hover:underline px-1.5 py-1 cursor-pointer"
+              >
+                Gunakan Emoji
+              </button>
+            )}
+          </div>
+          <p className="text-[11px] text-gray-400 leading-tight">
+            Foto otomatis di-crop bulat & dikompres sangat ringan agar hemat database.
+          </p>
+        </div>
+      </div>
+
+      {/* Quick Emoji Selection */}
+      <div className="pt-1">
+        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-1">
+          Atau Pilih Emoji Avatar:
+        </span>
+        <div className="flex flex-wrap gap-1.5">
+          {EMOJI_OPTIONS.map((em, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onChange(em)}
+              className={`w-8 h-8 rounded-xl text-sm flex items-center justify-center transition-all cursor-pointer border ${
+                value === em 
+                  ? 'bg-blue-100 border-blue-400 scale-110 shadow-xs' 
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {em}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Modal Form Tambah / Edit Konten
 function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
   const isEdit = !!item;
@@ -735,13 +869,17 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Nama Tamu *</label><input type="text" required value={form.name} onChange={e => set('name', e.target.value)} className={inputClass} /></div>
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Peran / Asal Kota</label><input type="text" value={form.role} onChange={e => set('role', e.target.value)} className={inputClass} placeholder="Wisatawan Surabaya" /></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Avatar (Emoji)</label><input type="text" value={form.avatar} onChange={e => set('avatar', e.target.value)} className={inputClass} /></div>
-              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Rating</label>
-                <select value={form.rating} onChange={e => set('rating', parseInt(e.target.value))} className={`${inputClass} bg-white`}>
-                  {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Bintang</option>)}
-                </select>
-              </div>
+            {/* Avatar Upload Field dengan Auto-Resize */}
+            <AvatarUploadField 
+              value={form.avatar} 
+              onChange={val => set('avatar', val)} 
+            />
+
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Rating Kepuasan</label>
+              <select value={form.rating} onChange={e => set('rating', parseInt(e.target.value))} className={`${inputClass} bg-white`}>
+                {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Bintang</option>)}
+              </select>
             </div>
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Ulasan / Testimoni *</label><textarea rows={3} required value={form.text} onChange={e => set('text', e.target.value)} className={`${inputClass} resize-none`} /></div>
           </>)}

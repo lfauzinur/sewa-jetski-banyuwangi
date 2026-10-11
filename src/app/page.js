@@ -488,8 +488,12 @@ function TestimonialsSection() {
                       &quot;{testi.text}&quot;
                     </p>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg">
-                        {testi.avatar}
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg overflow-hidden shrink-0 border border-white/20">
+                        {testi.avatar && (testi.avatar.startsWith('data:') || testi.avatar.startsWith('http') || testi.avatar.startsWith('/')) ? (
+                          <img src={testi.avatar} alt={testi.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{testi.avatar || '👤'}</span>
+                        )}
                       </div>
                       <div>
                         <span className="text-white font-bold text-sm block">{testi.name}</span>
