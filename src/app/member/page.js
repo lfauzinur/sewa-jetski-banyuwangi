@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2, Navigation } from 'lucide-react';
 import ThemeIcon from '@/components/ThemeIcon';
+import MarineWeatherCard from '@/components/MarineWeatherCard';
 import { jetskiUnits, articles as fallbackArticles, watersportServices as fallbackServices } from '@/lib/data';
 import { getServices, getArticles, getPromos } from '@/lib/supabase-data';
 import { supabase } from '@/lib/supabase';
@@ -140,6 +141,11 @@ export default function MemberHome() {
             <ChevronRight size={16} className="text-gray-400 group-hover:text-[var(--royal)] transition-colors" />
           </Link>
         </div>
+      </div>
+
+      {/* Live Maritime Weather Card (GPS-based) */}
+      <div className="mt-5 px-5">
+        <MarineWeatherCard />
       </div>
 
       {/* Digital Member Card */}

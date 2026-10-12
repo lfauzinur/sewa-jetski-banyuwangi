@@ -251,8 +251,8 @@ export default function MapComponent({ selectedRoute, routes, geofences, onRetur
   // 3. Periodic Weather API & Emergency Broadcast Checker (Tiap 20 Detik)
   useEffect(() => {
     async function checkSafetyConditions() {
-      // A. Ambil Cuaca Maritim Terkini (Open-Meteo)
-      const weather = await getMaritimeWeather();
+      // A. Ambil Cuaca Maritim Terkini berdasarkan Posisi GPS Rider
+      const weather = await getMaritimeWeather(position);
       setMaritimeWeather(weather);
 
       if (weather && weather.isEmergency) {
@@ -275,7 +275,7 @@ export default function MapComponent({ selectedRoute, routes, geofences, onRetur
     checkSafetyConditions();
     const interval = setInterval(checkSafetyConditions, 20000);
     return () => clearInterval(interval);
-  }, [soundEnabled]);
+  }, [position, soundEnabled]);
 
   // Handle SOS
   async function triggerSos() {
