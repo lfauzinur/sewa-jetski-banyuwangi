@@ -738,3 +738,26 @@ input[type="number"] {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(0); }
 }
+
+/* ══════════════════════════════════════════
+   SUNLIGHT HIGH-CONTRAST OUTDOOR MODE (PRD 5)
+   ══════════════════════════════════════════ */
+.sunlight-high-contrast .leaflet-tile-pane {
+  filter: contrast(130%) saturate(150%) brightness(102%);
+}
+.sunlight-high-contrast .bg-slate-950\/90,
+.sunlight-high-contrast .bg-slate-900\/90 {
+  background-color: #000000 !important;
+  border: 3px solid #F59E0B !important;
+  box-shadow: 0 0 0 2px #000, 0 8px 30px rgba(0,0,0,0.8) !important;
+}
+.sunlight-high-contrast .text-cyan-400,
+.sunlight-high-contrast .text-cyan-300 {
+  color: #38BDF8 !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+.sunlight-high-contrast .text-slate-400 {
+  color: #E2E8F0 !important;
+  font-weight: 700;
+}
+

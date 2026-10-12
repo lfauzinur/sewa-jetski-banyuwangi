@@ -594,34 +594,74 @@ export async function deleteLoyaltyReward(id) {
 }
 
 // ========================
-// GPS & NAVIGATION
+// GPS & NAVIGATION (SAFARI ROUTES & GEOFENCING)
 // ========================
-const DEFAULT_GPS_ROUTES = [
+export const DEFAULT_GPS_ROUTES = [
   {
     id: 'route-1',
-    name: 'Rute Aman: Pantai Boom - Pulau Santen',
-    description: 'Rute yang sangat direkomendasikan untuk pemula. Ombak tenang.',
+    name: 'Sunset Explorer Safari',
+    description: 'Petualangan menyusuri garis pantai Boom Marina hingga laguna Pulau Santen dengan panorama matahari terbenam spektakuler.',
+    distance_km: 3.8,
+    duration_min: 45,
+    difficulty: 'Pemula',
     color: '#10B981',
+    active: true,
     path_data: [
       [-8.204555, 114.385455],
       [-8.209876, 114.391234],
       [-8.214532, 114.393456],
       [-8.220111, 114.392111]
     ],
-    active: true
+    checkpoints: [
+      { id: 'cp-1', name: 'Start Dermaga Marina Boom', lat: -8.204555, lng: 114.385455, description: 'Titik kumpul & briefing keselamatan awal.' },
+      { id: 'cp-2', name: 'Mercusuar Kuno Boom', lat: -8.209876, lng: 114.391234, description: 'Spot foto ikonik peninggalan bersejarah pelabuhan.' },
+      { id: 'cp-3', name: 'Laguna & Mangrove Santen', lat: -8.214532, lng: 114.393456, description: 'Perairan tenang untuk manuver santai & istirahat sejenak.' },
+      { id: 'cp-4', name: 'Sunset Viewpoint Selat Bali', lat: -8.220111, lng: 114.392111, description: 'Titik panorama matahari terbenam terbaik di atas air.' }
+    ]
   },
   {
     id: 'route-2',
-    name: 'Rute Eksplorasi: Selat Bali Cruise',
-    description: 'Sensasi melaju kencang di perairan terbuka Selat Bali dengan pemandangan pegunungan.',
-    color: '#3B82F6',
+    name: 'Selat Bali Speed Cruise & Coral Sanctuary',
+    description: 'Jalur kecepatan tinggi di perairan terbuka Selat Bali dengan pemandangan pegunungan Bali Barat dan spot konservasi karang.',
+    distance_km: 6.5,
+    duration_min: 60,
+    difficulty: 'Menengah',
+    color: '#0284C7',
+    active: true,
     path_data: [
       [-8.204555, 114.385455],
       [-8.201200, 114.398000],
       [-8.208500, 114.405000],
       [-8.218000, 114.398000]
     ],
-    active: true
+    checkpoints: [
+      { id: 'cp-1', name: 'Dermaga Utama', lat: -8.204555, lng: 114.385455, description: 'Pintu keluar teluk menuju perairan terbuka.' },
+      { id: 'cp-2', name: 'Garis Arus Selat Bali', lat: -8.201200, lng: 114.398000, description: 'Zona kecepatan tinggi dengan ombak menantang.' },
+      { id: 'cp-3', name: 'Bangsring Coral Sanctuary', lat: -8.208500, lng: 114.405000, description: 'Area konservasi terumbu karang dangkal & rumah apung.' },
+      { id: 'cp-4', name: 'Batas Balik Marina', lat: -8.218000, lng: 114.398000, description: 'Titik putar balik aman menuju koridor pelabuhan.' }
+    ]
+  },
+  {
+    id: 'route-3',
+    name: 'Island-Hopping Safari: Pulau Tabuhan Expedition',
+    description: 'Ekspedisi safari jarak jauh menuju pulau tak berpenghuni dengan pasir putih kristal dan biota laut eksotis di Wongsorejo.',
+    distance_km: 11.2,
+    duration_min: 90,
+    difficulty: 'Mahir (Pro)',
+    color: '#F59E0B',
+    active: true,
+    path_data: [
+      [-8.041200, 114.441100],
+      [-8.035000, 114.448000],
+      [-8.028000, 114.455000],
+      [-8.022000, 114.461000]
+    ],
+    checkpoints: [
+      { id: 'cp-1', name: 'Basecamp Bengkak Wongsorejo', lat: -8.041200, lng: 114.441100, description: 'Pemberangkatan safari jarak jauh.' },
+      { id: 'cp-2', name: 'Navigasi Selat Luar', lat: -8.035000, lng: 114.448000, description: 'Perairan berarus kuat, pertahankan kecepatan stabil.' },
+      { id: 'cp-3', name: 'Karang Dangkal Tabuhan', lat: -8.028000, lng: 114.455000, description: 'Wajib kurangi kecepatan, hindari karang tepi.' },
+      { id: 'cp-4', name: 'Pasir Putih Pulau Tabuhan', lat: -8.022000, lng: 114.461000, description: 'Spot pendaratan eksotis & snorkeling.' }
+    ]
   }
 ];
 
@@ -660,6 +700,10 @@ export async function upsertGpsRoute(route) {
     description: route.description,
     color: route.color || '#3B82F6',
     path_data: route.path_data,
+    distance_km: route.distance_km || null,
+    duration_min: route.duration_min || null,
+    difficulty: route.difficulty || 'Pemula',
+    checkpoints: route.checkpoints || [],
     active: route.active !== false
   };
 
@@ -815,3 +859,191 @@ export async function deleteBasecamp(id) {
   if (error) console.error('deleteBasecamp error:', error);
   return !error;
 }
+
+// ==============================================================================
+// EMERGENCY ALERTS & ADMIN MANUAL OVERRIDE SYSTEM (PRD SECTION 3.2 & 3.1)
+// ==============================================================================
+
+export async function getActiveEmergencyAlert() {
+  try {
+    const { data, error } = await supabase
+      .from('emergency_alerts')
+      .select('*')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (!error && data && data.length > 0) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('active_emergency_alert', JSON.stringify(data[0]));
+      }
+      return data[0];
+    }
+  } catch (err) {
+    // Supabase table might not exist yet
+  }
+
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('active_emergency_alert');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.active) return parsed;
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+export async function broadcastEmergencyAlert({ type = 'admin_override', severity = 'danger', title, message }) {
+  const payload = {
+    type,
+    severity,
+    title,
+    message,
+    active: true,
+    created_by: 'Beach Marshal Admin',
+    created_at: new Date().toISOString()
+  };
+
+  let saved = null;
+  try {
+    const { data, error } = await supabase
+      .from('emergency_alerts')
+      .insert(payload)
+      .select()
+      .single();
+    if (!error && data) saved = data;
+  } catch (err) {
+    console.warn('broadcastEmergencyAlert supabase err:', err);
+  }
+
+  if (!saved) {
+    saved = { ...payload, id: `alert-${Date.now()}` };
+  }
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('active_emergency_alert', JSON.stringify(saved));
+  }
+  return saved;
+}
+
+export async function dismissEmergencyAlert(id = null) {
+  try {
+    if (id && !id.startsWith('alert-')) {
+      await supabase
+        .from('emergency_alerts')
+        .update({ active: false })
+        .eq('id', id);
+    } else {
+      await supabase
+        .from('emergency_alerts')
+        .update({ active: false })
+        .eq('active', true);
+    }
+  } catch (err) {}
+
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('active_emergency_alert');
+  }
+  return true;
+}
+
+// ==============================================================================
+// SOS SIGNALS DISPATCH & RESCUE MANAGEMENT
+// ==============================================================================
+
+export async function sendSosSignal({ user_id, user_name, lat, lng, note = '' }) {
+  const payload = {
+    user_id: user_id || 'rider-unknown',
+    user_name: user_name || 'Rider Tamu',
+    lat,
+    lng,
+    status: 'active',
+    note: note || 'Permintaan bantuan darurat dari stang jetski.',
+    created_at: new Date().toISOString()
+  };
+
+  let saved = null;
+  try {
+    const { data, error } = await supabase
+      .from('sos_signals')
+      .insert(payload)
+      .select()
+      .single();
+    if (!error && data) saved = data;
+  } catch (err) {
+    console.warn('sendSosSignal supabase err:', err);
+  }
+
+  if (!saved) {
+    saved = { ...payload, id: `sos-${Date.now()}` };
+  }
+
+  // Also update live_locations status to 'sos'
+  try {
+    await upsertLiveLocation({
+      user_id: payload.user_id,
+      user_name: payload.user_name,
+      lat,
+      lng,
+      status: 'sos',
+      last_updated: new Date().toISOString()
+    });
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = JSON.parse(localStorage.getItem('admin_sos_signals') || '[]');
+      localStorage.setItem('admin_sos_signals', JSON.stringify([saved, ...existing]));
+    } catch (e) {}
+  }
+
+  return saved;
+}
+
+export async function getActiveSosSignals() {
+  try {
+    const { data, error } = await supabase
+      .from('sos_signals')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_sos_signals', JSON.stringify(data));
+      }
+      return data;
+    }
+  } catch (err) {}
+
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('admin_sos_signals');
+      if (stored) {
+        return JSON.parse(stored).filter(s => s.status === 'active');
+      }
+    } catch (e) {}
+  }
+  return [];
+}
+
+export async function resolveSosSignal(id) {
+  try {
+    if (typeof id === 'string' && !id.startsWith('sos-')) {
+      await supabase
+        .from('sos_signals')
+        .update({ status: 'resolved', resolved_at: new Date().toISOString() })
+        .eq('id', id);
+    }
+  } catch (err) {}
+
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = JSON.parse(localStorage.getItem('admin_sos_signals') || '[]');
+      const updated = existing.map(s => s.id === id ? { ...s, status: 'resolved' } : s);
+      localStorage.setItem('admin_sos_signals', JSON.stringify(updated));
+    } catch (e) {}
+  }
+  return true;
+}
+
