@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Waves, Wind, Sun, MapPin, RefreshCw, ChevronRight, AlertTriangle, ShieldCheck, Navigation } from 'lucide-react';
 import { getMaritimeWeather } from '@/lib/weather-service';
+import TidesPanel from '@/components/TidesPanel';
 
 export default function MarineWeatherCard({ compact = false, showNavigationLink = true }) {
   const [weather, setWeather] = useState(null);
@@ -182,6 +183,15 @@ export default function MarineWeatherCard({ compact = false, showNavigationLink 
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 border-t border-gray-100 pt-4 relative z-10">
+        <TidesPanel
+          compact
+          embedded
+          initialCoords={{ ...weather.coords, name: weather.location }}
+          href="/member/tides"
+        />
       </div>
 
       {/* Footer / Navigation Link */}

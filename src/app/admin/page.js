@@ -22,6 +22,7 @@ import {
   Bar
 } from 'recharts';
 import { mockBookings, formatCurrency } from '@/lib/data';
+import TidesPanel from '@/components/TidesPanel';
 
 // Mock chart data
 const revenueData = [
@@ -170,6 +171,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      <TidesPanel compact href="/admin/tides" allowGps={false} />
 
       {/* Recent Bookings Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2, Navigation } from 'lucide-react';
+import { ChevronRight, LogOut, Star, Waves, MapPin, Gift, Receipt, CreditCard, Sparkles, CheckCircle2, Navigation, TrendingUp } from 'lucide-react';
 import ThemeIcon from '@/components/ThemeIcon';
 import MarineWeatherCard from '@/components/MarineWeatherCard';
 import { jetskiUnits, articles as fallbackArticles, watersportServices as fallbackServices } from '@/lib/data';
@@ -71,6 +71,7 @@ export default function MemberHome() {
 
   const features = [
     { name: 'Navigasi', icon: <Navigation size={22} className="text-[var(--royal)]" />, href: '/member/navigation', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
+    { name: 'Tides', icon: <TrendingUp size={22} className="text-[var(--royal)]" />, href: '/member/tides', color: 'bg-cyan-50/90 border border-cyan-100/80 shadow-xs' },
     { name: 'Pesan Unit', icon: <Waves size={22} className="text-[var(--royal)]" />, href: '#booking', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
     { name: 'Lokasi', icon: <MapPin size={22} className="text-[var(--royal)]" />, href: '/member/location', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
     { name: 'Reward', icon: <Gift size={22} className="text-[var(--royal)]" />, href: '/member/rewards', color: 'bg-blue-50/90 border border-blue-100/80 shadow-xs' },
