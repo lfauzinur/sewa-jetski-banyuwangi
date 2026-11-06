@@ -24,6 +24,10 @@ ALTER TABLE public.basecamps ADD COLUMN IF NOT EXISTS maps_url TEXT;
 ALTER TABLE public.basecamps ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE public.basecamps ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
+-- Temporary MVP setup: this app currently uses client-side mock admin auth.
+-- Re-enable RLS after connecting the admin dashboard to Supabase Auth policies.
+ALTER TABLE public.basecamps DISABLE ROW LEVEL SECURITY;
+
 DO $$
 BEGIN
   IF to_regclass('public.services') IS NULL THEN
@@ -52,3 +56,6 @@ BEGIN
     ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS payment_details JSONB NOT NULL DEFAULT '[]'::jsonb;
   END IF;
 END $$;
+
+-- Refresh PostgREST's schema cache so newly added columns are immediately visible.
+NOTIFY pgrst, 'reload schema';

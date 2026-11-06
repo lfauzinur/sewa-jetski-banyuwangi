@@ -46,8 +46,10 @@ export default function AdminLayout({ children }) {
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: <LayoutDashboard size={20} /> },
-    { name: 'Live Tracking', href: '/admin/live-tracking', icon: <Map size={20} /> },
-    { name: 'Tides', href: '/admin/tides', icon: <Waves size={20} /> },
+    {
+      name: 'Live Tracking', href: '/admin/live-tracking', icon: <Map size={20} />,
+      children: [{ name: 'Tides', href: '/admin/tides', icon: <Waves size={16} /> }],
+    },
     { name: 'Basecamp', href: '/admin/basecamps', icon: <MapPin size={20} /> },
     { name: 'Scan Tiket', href: '/admin/scanner', icon: <Scan size={20} /> },
     { name: 'Kelola Unit', href: '/admin/units', icon: <Package size={20} /> },
@@ -94,23 +96,43 @@ export default function AdminLayout({ children }) {
 
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const activeChild = item.children?.some((child) => pathname === child.href);
+            const isActive = pathname === item.href || activeChild;
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsSidebarOpen(false)}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors text-sm
-                  ${isActive 
-                    ? 'bg-[var(--cyan)] text-white shadow-md' 
-                    : 'text-white/60 hover:bg-white/10 hover:text-white'
-                  }
-                `}
-              >
-                {item.icon}
-                {item.name}
-              </Link>
+              <div key={item.name}>
+                <Link
+                  href={item.href}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors text-sm
+                    ${isActive
+                      ? 'bg-[var(--cyan)] text-white shadow-md'
+                      : 'text-white/60 hover:bg-white/10 hover:text-white'
+                    }
+                  `}
+                >
+                  {item.icon}
+                  {item.name}
+                </Link>
+                {item.children && isActive && (
+                  <div className="ml-5 mt-1 border-l border-white/20 pl-3 space-y-1">
+                    {item.children.map((child) => {
+                      const childActive = pathname === child.href;
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={() => setIsSidebarOpen(false)}
+                          className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${childActive ? 'bg-white/15 text-white' : 'text-white/55 hover:bg-white/10 hover:text-white'}`}
+                        >
+                          {child.icon}
+                          {child.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
@@ -141,7 +163,7 @@ export default function AdminLayout({ children }) {
               <Menu size={24} />
             </button>
             <h1 className="font-bold text-gray-900 truncate">
-              {navItems.find(i => i.href === pathname)?.name || 'Dashboard'}
+              {navItems.flatMap((item) => [item, ...(item.children || [])]).find((item) => item.href === pathname)?.name || 'Dashboard'}
             </h1>
           </div>
 
