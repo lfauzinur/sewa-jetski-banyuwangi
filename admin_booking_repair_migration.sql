@@ -41,6 +41,23 @@ ALTER TABLE public.services ADD COLUMN IF NOT EXISTS top_speed TEXT DEFAULT '';
 ALTER TABLE public.services ADD COLUMN IF NOT EXISTS rating NUMERIC(3, 1) NOT NULL DEFAULT 4.5;
 ALTER TABLE public.services ADD COLUMN IF NOT EXISTS reviews INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE public.services ADD COLUMN IF NOT EXISTS available BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.services ADD COLUMN IF NOT EXISTS product_type TEXT;
+
+UPDATE public.services
+SET product_type = CASE
+  WHEN type = 'jetski' THEN 'jetski'
+  WHEN lower(coalesce(name, '')) LIKE '%paddle%'
+    OR lower(coalesce(name, '')) LIKE '%papan selancar%'
+    OR lower(coalesce(name, '')) LIKE '%sup board%' THEN 'paddle_board'
+  WHEN lower(coalesce(name, '')) LIKE '%kapal listrik%'
+    OR lower(coalesce(name, '')) LIKE '%electric boat%' THEN 'electric_boat'
+  WHEN lower(coalesce(name, '')) LIKE '%sailing%'
+    OR lower(coalesce(name, '')) LIKE '%layar%' THEN 'sailing'
+  ELSE 'other'
+END
+WHERE product_type IS NULL OR btrim(product_type) = '';
+
+ALTER TABLE public.services ALTER COLUMN product_type SET DEFAULT 'other';
 
 -- Add DP fields without changing existing booking rows or their statuses.
 DO $$

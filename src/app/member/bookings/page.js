@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Search, Ticket, Clock, CheckCircle2, ChevronRight, Anchor } from 'lucide-react';
 import { formatCurrency } from '@/lib/data';
+import { getServiceProductTypeLabel } from '@/lib/service-types';
 
 export default function MemberBookings() {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -86,6 +87,7 @@ export default function MemberBookings() {
                       {booking.status === 'cancelled' && <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Dibatalkan</span>}
                     </div>
                     <h3 className="font-extrabold text-gray-900 text-sm leading-tight">{booking.unit}</h3>
+                    <p className="mt-0.5 text-[10px] font-bold text-[var(--royal)]">{booking.productTypeLabel || getServiceProductTypeLabel(booking.productType)}</p>
                     <div className="flex flex-col gap-1 mt-2 text-xs text-gray-600 font-medium">
                       <span className="flex items-center gap-1"><Calendar size={14} className="text-gray-400" /> {new Date(booking.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       <span className="flex items-center gap-1"><Clock size={14} className="text-gray-400" /> {booking.timeSlot}</span>

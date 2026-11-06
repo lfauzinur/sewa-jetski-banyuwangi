@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Eye, CheckCircle, XCircle, Download, MapPin, CheckCircle2, Sparkles } from 'lucide-react';
 import { formatCurrency } from '@/lib/data';
+import { getServiceProductTypeLabel } from '@/lib/service-types';
 
 const STATUS_OPTIONS = ['all', 'pending', 'confirmed', 'completed', 'cancelled'];
 const STATUS_COLORS = {
@@ -83,6 +84,7 @@ export default function AdminBookings() {
       'No. Telepon',
       'Email',
       'Unit Watersport',
+      'Jenis Wahana',
       'Lokasi Basecamp',
       'Add-ons Tambahan',
       'Tanggal',
@@ -106,6 +108,7 @@ export default function AdminBookings() {
         `"${(b.customerPhone || '').replace(/"/g, '""')}"`,
         `"${(b.customerEmail || '').replace(/"/g, '""')}"`,
         `"${(b.unit || '').replace(/"/g, '""')}"`,
+        `"${getServiceProductTypeLabel(b.productType)}"`,
         `"${(b.location || 'Pantai Boom').replace(/"/g, '""')}"`,
         `"${addonsText.replace(/"/g, '""')}"`,
         `"${b.date || ''}"`,
@@ -246,6 +249,7 @@ export default function AdminBookings() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{booking.unit}</div>
+                    <div className="text-[10px] font-bold text-[var(--royal)]">{booking.productTypeLabel || getServiceProductTypeLabel(booking.productType)}</div>
                     <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                       <MapPin size={10} /> {booking.location || 'Pantai Boom'}
                     </div>
@@ -353,6 +357,7 @@ export default function AdminBookings() {
                 ['Email', selectedBooking.customerEmail || '-'],
                 ['Telepon', selectedBooking.customerPhone || '-'],
                 ['Unit Utama', selectedBooking.unit],
+                ['Jenis Wahana', selectedBooking.productTypeLabel || getServiceProductTypeLabel(selectedBooking.productType)],
                 ['Lokasi Basecamp', selectedBooking.location || 'Pantai Boom'],
                 ['Tanggal', new Date(selectedBooking.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
                 ['Jadwal Waktu', selectedBooking.timeSlot],

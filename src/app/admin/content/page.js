@@ -11,6 +11,7 @@ import {
   getArticles, upsertArticle, deleteArticle, 
   getPromos, upsertPromo, deletePromo 
 } from '@/lib/supabase-data';
+import { SERVICE_PRODUCT_TYPES, getServiceProductTypeLabel } from '@/lib/service-types';
 
 // Koleksi Gambar Siap Pakai untuk Kemudahan Admin dengan Icon Senada UI
 const WATERSPORT_PRESETS = [
@@ -36,6 +37,7 @@ export default function AdminContent() {
   const [editItem, setEditItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     const loadAll = async () => {
@@ -128,10 +130,20 @@ export default function AdminContent() {
       }
     }
     if (tab === 'services') {
-      const result = await upsertService(item);
-      if (result) {
-        if (editItem) setServices(prev => prev.map(s => s.id === item.id ? result : s));
-        else setServices(prev => [...prev, result]);
+      try {
+        const payload = {
+          ...item,
+          type: item.productType === 'jetski' ? 'jetski' : 'activity',
+        };
+        const result = await upsertService(payload);
+        if (result) {
+          if (editItem) setServices(prev => prev.map(s => s.id === item.id ? result : s));
+          else setServices(prev => [...prev, result]);
+          setSaveError('');
+        }
+      } catch (error) {
+        setSaveError(`Layanan gagal disimpan: ${error.message}`);
+        return;
       }
     }
     if (tab === 'promos') {
@@ -158,7 +170,7 @@ export default function AdminContent() {
     { key: 'articles', label: 'Artikel', icon: <FileText size={17} />, count: articles.length, color: 'text-blue-500' },
     { key: 'categories', label: 'Kategori', icon: <Layers size={17} />, count: categories.length, color: 'text-indigo-500' },
     { key: 'promos', label: 'Promo', icon: <Tag size={17} />, count: promos.length, color: 'text-amber-500' },
-    { key: 'services', label: 'Layanan', icon: <Star size={17} />, count: services.length, color: 'text-emerald-500' },
+    { key: 'services', label: 'Produk Booking', icon: <Star size={17} />, count: services.length, color: 'text-emerald-500' },
     { key: 'gallery', label: 'Galeri', icon: <ImageIcon size={17} />, count: gallery.length, color: 'text-cyan-500' },
     { key: 'video', label: 'Video', icon: <Play size={17} />, count: 1, color: 'text-rose-500' },
     { key: 'testimonials', label: 'Testimoni', icon: <MessageSquare size={17} />, count: testimonials.length, color: 'text-purple-500' },
@@ -173,13 +185,14 @@ export default function AdminContent() {
         </div>
         {tab !== 'video' && (
           <button 
-            onClick={() => { setEditItem(null); setShowModal(true); }} 
+            onClick={() => { setSaveError(''); setEditItem(null); setShowModal(true); }}
             className="btn btn-cyan px-4 py-2.5 text-sm flex items-center gap-2 shadow-sm cursor-pointer"
           >
             <Plus size={18} /> Tambah {tabs.find(t => t.key === tab)?.label.split(' ')[0]}
           </button>
         )}
       </div>
+      {saveError && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{saveError}</div>}
 
       {/* Segmented Tabs Navigation */}
       <div className="bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner">
@@ -300,11 +313,10 @@ export default function AdminContent() {
               <div key={item.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm flex flex-col">
                 <div className="relative h-44 bg-gray-100">
                   <img src={serviceImage} alt={item.name} className="w-full h-full object-cover" />
-                  {item.category && (
-                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-[var(--royal)] uppercase shadow-sm">
-                      {item.category}
-                    </div>
-                  )}
+                  <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-[var(--royal)] uppercase shadow-sm">
+                    {getServiceProductTypeLabel(item.productType || (item.type === 'jetski' ? 'jetski' : 'other'))}
+                  </div>
+                  {!item.available && <div className="absolute bottom-2 right-2 rounded-full bg-rose-500 px-2.5 py-1 text-[10px] font-bold uppercase text-white">Nonaktif</div>}
                 </div>
                 <div className="p-4 flex flex-col flex-1">
                   <h3 className="font-bold text-gray-900 text-base">{item.name}</h3>
@@ -323,7 +335,7 @@ export default function AdminContent() {
                     </div>
                   )}
                   <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-                    <button onClick={() => { setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
+                    <button onClick={() => { setSaveError(''); setEditItem(item); setShowModal(true); }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold hover:bg-blue-100 cursor-pointer"><Edit2 size={12} /> Edit</button>
                     <button onClick={() => setDeleteTarget({ type: 'services', item })} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 cursor-pointer"><Trash2 size={12} /> Hapus</button>
                   </div>
                 </div>
@@ -410,8 +422,9 @@ export default function AdminContent() {
           tab={tab} 
           item={editItem} 
           onSave={handleSave} 
-          onClose={() => { setShowModal(false); setEditItem(null); }} 
+          onClose={() => { setShowModal(false); setEditItem(null); setSaveError(''); }}
           categories={categories} 
+          errorMessage={saveError}
         />
       )}
 
@@ -731,12 +744,12 @@ function AvatarUploadField({ value, onChange }) {
 }
 
 // Modal Form Tambah / Edit Konten
-function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
+function ContentFormModal({ tab, item, onSave, onClose, categories = [], errorMessage = '' }) {
   const isEdit = !!item;
   const getDefaults = () => {
     if (tab === 'articles') return { id: '', title: '', slug: '', excerpt: '', date: new Date().toISOString().split('T')[0], category: 'Tips & Trik', image: '/images/hero-jetski.png', readTime: '5 menit' };
     if (tab === 'categories') return { id: '', name: '', slug: '', description: '', image: '/images/hero-jetski.png' };
-    if (tab === 'services') return { id: '', name: '', slug: '', description: '', price: 0, duration: '30 menit', image: '/images/hero-jetski.png', icon: 'waves', details: 'Guide Profesional\nPelampung\nAir Mineral', category: categories.length > 0 ? categories[0].slug : 'safari-packages' };
+    if (tab === 'services') return { id: '', type: 'activity', productType: 'other', name: '', slug: '', description: '', price: 0, duration: '30 menit', capacity: 2, available: false, image: '/images/hero-jetski.png', icon: 'waves', details: 'Guide Profesional\nPelampung\nAir Mineral', category: categories.length > 0 ? categories[0].slug : 'safari-packages' };
     if (tab === 'promos') return { id: '', title: '', subtitle: '', desc: '', bg: 'bg-blue-500', icon: 'ticket' };
     if (tab === 'gallery') return { id: '', src: '/images/gallery-group.png', alt: '', span: '' };
     return { id: '', name: '', role: '', avatar: '', rating: 5, text: '' };
@@ -749,7 +762,14 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
     if (tab === 'articles' && !form.slug) form.slug = form.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     if (tab === 'categories' && !form.slug) form.slug = form.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     if (tab === 'services' && !form.slug) form.slug = form.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    onSave(form);
+    if (tab === 'services' && form.available && Number(form.price) <= 0) {
+      window.alert('Isi harga di atas Rp 0 sebelum mengaktifkan layanan untuk booking.');
+      return;
+    }
+    const submittedForm = tab === 'services'
+      ? { ...form, type: form.productType === 'jetski' ? 'jetski' : 'activity' }
+      : form;
+    onSave(submittedForm);
   };
 
   const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[var(--cyan)] focus:ring-2 focus:ring-[var(--cyan)]/20 outline-none";
@@ -770,6 +790,7 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
         </div>
 
         <div className="p-6 space-y-4">
+          {tab === 'services' && errorMessage && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-800">{errorMessage}</div>}
           {/* TAB ARTIKEL */}
           {tab === 'articles' && (<>
             <ImageUploadField 
@@ -799,6 +820,12 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
           {/* TAB LAYANAN */}
           {tab === 'services' && (<>
             <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Jenis Produk Booking</label>
+              <select value={form.productType || (form.type === 'jetski' ? 'jetski' : 'other')} onChange={e => set('productType', e.target.value)} className={`${inputClass} bg-white`}>
+                {SERVICE_PRODUCT_TYPES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </div>
+            <div>
               <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Kategori (Pilih Kategori di Landing Page)</label>
               <select value={form.category || ''} onChange={e => set('category', e.target.value)} className={`${inputClass} bg-white`}>
                 {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
@@ -815,7 +842,7 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Deskripsi Layanan</label><textarea rows={2} value={form.description} onChange={e => set('description', e.target.value)} className={`${inputClass} resize-none`} placeholder="Deskripsi serunya wahana..." /></div>
             <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Detail / Include (Pisahkan dengan baris baru)</label><textarea rows={3} value={form.details || ''} onChange={e => set('details', e.target.value)} placeholder="Guide Profesional&#10;Pelampung&#10;Air Mineral" className={`${inputClass} resize-none`} /></div>
             
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Harga (Rp)</label>
                 <input 
@@ -831,6 +858,7 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                 />
               </div>
               <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Durasi</label><input type="text" value={form.duration} onChange={e => set('duration', e.target.value)} className={inputClass} placeholder="30 menit" /></div>
+              <div><label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Kapasitas</label><input type="number" min="1" value={form.capacity ?? 2} onChange={e => set('capacity', Math.max(1, parseInt(e.target.value, 10) || 1))} className={inputClass} /></div>
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wider">Icon Layanan</label>
                 <div className="relative">
@@ -854,6 +882,10 @@ function ContentFormModal({ tab, item, onSave, onClose, categories = [] }) {
                 </div>
               </div>
             </div>
+            <label className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 text-sm font-semibold text-gray-700">
+              <input type="checkbox" checked={form.available !== false} onChange={e => set('available', e.target.checked)} className="h-4 w-4 accent-cyan-600" />
+              Tampilkan dan izinkan pelanggan memesan layanan ini
+            </label>
           </>)}
 
           {/* TAB PROMO */}

@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { jetskiUnits, watersportServices, timeSlots, generateBookingId } from '@/lib/data';
-import { getAddons } from '@/lib/supabase-data';
+import { getAddons, getServices } from '@/lib/supabase-data';
+import { getServiceProductTypeLabel } from '@/lib/service-types';
 
 const generateCalendar = () => {
   const today = new Date();
@@ -45,12 +46,22 @@ export default function BookingPage({ params }) {
   useEffect(() => {
     const unwrapParams = async () => {
       const { id } = await params;
-      const storedUnits = localStorage.getItem('admin_units');
-      const storedServices = localStorage.getItem('admin_services');
-      const units = storedUnits ? JSON.parse(storedUnits) : jetskiUnits;
-      const services = storedServices ? JSON.parse(storedServices) : watersportServices;
-      const allItems = [...units, ...services];
-      const found = allItems.find(u => u.id === id || u.slug === id) || allItems[0];
+      const [databaseServices, storedUnits, storedServices] = await Promise.all([
+        getServices(),
+        Promise.resolve(localStorage.getItem('admin_units')),
+        Promise.resolve(localStorage.getItem('admin_services')),
+      ]);
+      let cachedItems = [];
+      try {
+        cachedItems = [
+          ...(storedUnits ? JSON.parse(storedUnits) : []),
+          ...(storedServices ? JSON.parse(storedServices) : []),
+        ];
+      } catch (error) {
+        console.error('Gagal membaca cache layanan:', error);
+      }
+      const allItems = [...(databaseServices || []), ...cachedItems, ...jetskiUnits, ...watersportServices];
+      const found = allItems.find(u => u.id === id || u.slug === id);
       setUnit(found);
     }
     unwrapParams();
@@ -82,7 +93,8 @@ export default function BookingPage({ params }) {
     setIsProcessing(true);
 
     setTimeout(() => {
-      const basePrice = unit.price || unit.pricePerSlot;
+      if (unit.available === false) return;
+      const basePrice = Number(unit.price ?? unit.pricePerSlot ?? 0);
       const addonsPrice = selectedAddons.reduce((sum, addon) => sum + (addon.price * addon.quantity), 0);
       const uniqueCode = Math.floor(Math.random() * 900) + 100;
       const totalPrice = basePrice + addonsPrice + uniqueCode;
@@ -94,6 +106,9 @@ export default function BookingPage({ params }) {
         customerEmail: user.email,
         customerPhone: user.phone,
         unit: unit.name,
+        productType: unit.productType || unit.product_type || (unit.type === 'jetski' ? 'jetski' : 'other'),
+        productTypeLabel: getServiceProductTypeLabel(unit.productType || unit.product_type || (unit.type === 'jetski' ? 'jetski' : 'other')),
+        duration: unit.duration || '30 menit',
         location: selectedLocation,
         date: selectedDate,
         timeSlot: timeSlots.find(t => t.id === selectedTime)?.time,
@@ -129,7 +144,7 @@ export default function BookingPage({ params }) {
     });
   };
 
-  const currentBasePrice = unit.price || unit.pricePerSlot;
+  const currentBasePrice = Number(unit.price ?? unit.pricePerSlot ?? 0);
   const currentAddonsPrice = selectedAddons.reduce((sum, a) => sum + (a.price * a.quantity), 0);
   const currentTotal = currentBasePrice + currentAddonsPrice;
 
@@ -155,6 +170,8 @@ export default function BookingPage({ params }) {
             <p className="text-xs text-gray-500">{unit.duration || '30 Menit'}</p>
           </div>
         </div>
+        {unit.available === false && <p className="mt-3 rounded-xl bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">Layanan ini sedang tidak tersedia untuk dipesan.</p>}
+        {currentBasePrice <= 0 && <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">Harga layanan belum diatur. Silakan hubungi Admin.</p>}
       </div>
 
       {/* Details / Includes */}
@@ -320,10 +337,10 @@ export default function BookingPage({ params }) {
         
         <button
           onClick={handleBooking}
-          disabled={!selectedDate || !selectedTime || isProcessing}
+          disabled={!selectedDate || !selectedTime || isProcessing || unit.available === false || currentBasePrice <= 0}
           className="w-full bg-[var(--royal)] text-white py-4 rounded-2xl font-bold text-base shadow-[0_8px_20px_rgba(37,99,235,0.25)] disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 transition-all hover:bg-blue-700"
         >
-          {isProcessing ? 'Processing...' : 'Book Now'} <ArrowLeft size={18} className="rotate-180" />
+          {isProcessing ? 'Processing...' : unit.available === false || currentBasePrice <= 0 ? 'Belum Tersedia' : 'Book Now'} <ArrowLeft size={18} className="rotate-180" />
         </button>
       </div>
     </div>

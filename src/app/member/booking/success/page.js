@@ -5,6 +5,7 @@ import { Check, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/data';
+import { getServiceProductTypeLabel } from '@/lib/service-types';
 
 function BookingSuccessContent() {
   const router = useRouter();
@@ -58,7 +59,7 @@ function BookingSuccessContent() {
         <h1 className="text-2xl font-extrabold text-[var(--royal)] mb-3">Booking Berhasil Dibuat</h1>
         
         <p className="text-gray-700 text-sm leading-relaxed mb-4">
-          Jadwal Anda untuk <strong className="text-gray-900">{booking.unit}</strong> pada <strong className="text-gray-900">{formattedDate}</strong>, pukul <strong className="text-gray-900">{booking.timeSlot}</strong> sudah dicatat. Admin akan memverifikasi pembayaran Anda.
+          Booking <strong className="text-gray-900">{booking.productTypeLabel || getServiceProductTypeLabel(booking.productType)}</strong> Anda untuk <strong className="text-gray-900">{booking.unit}</strong> pada <strong className="text-gray-900">{formattedDate}</strong>, pukul <strong className="text-gray-900">{booking.timeSlot}</strong> sudah dicatat. Admin akan memverifikasi pembayaran Anda.
         </p>
 
         {Number(booking.depositAmount) > 0 && (

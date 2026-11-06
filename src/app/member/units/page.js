@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ArrowLeft, Star, CheckCircle2 } from 'lucide-react';
 import { jetskiUnits, watersportServices } from '@/lib/data';
 import { getServices } from '@/lib/supabase-data';
+import { getServiceProductTypeLabel } from '@/lib/service-types';
 
 export default function MemberUnitsPage() {
   const [units, setUnits] = useState([]);
@@ -25,7 +26,7 @@ export default function MemberUnitsPage() {
     loadData();
   }, []);
 
-  const displayItems = activeTab === 'jetski' ? units : services;
+  const displayItems = (activeTab === 'jetski' ? units : services).filter(item => item.available !== false);
 
   return (
     <div className="min-h-screen bg-[#F5F8FF] pb-24">
@@ -37,7 +38,7 @@ export default function MemberUnitsPage() {
           </Link>
           <div>
             <h1 className="font-bold text-gray-900 text-lg">Semua Layanan</h1>
-            <p className="text-gray-400 text-xs">Pilih unit atau aktivitas favoritmu</p>
+            <p className="text-gray-400 text-xs">Pilih wahana yang tersedia untuk dipesan</p>
           </div>
         </div>
       </div>
@@ -49,19 +50,20 @@ export default function MemberUnitsPage() {
             onClick={() => setActiveTab('jetski')}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'jetski' ? 'bg-[var(--royal)] text-white shadow-md' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            Unit Jetski ({units.length})
+            Jetski ({units.filter(item => item.available !== false).length})
           </button>
           <button
             onClick={() => setActiveTab('services')}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'services' ? 'bg-[var(--royal)] text-white shadow-md' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            Layanan Lainnya ({services.length})
+            Wahana Lainnya ({services.filter(item => item.available !== false).length})
           </button>
         </div>
       </div>
 
       {/* Items List */}
       <div className="px-5 pt-5 space-y-4">
+        {displayItems.length === 0 && <div className="rounded-2xl border border-gray-200 bg-white px-5 py-10 text-center text-sm text-gray-500">Belum ada wahana yang tersedia pada kategori ini.</div>}
         {displayItems.map(item => (
           <Link
             key={item.id}
@@ -78,7 +80,7 @@ export default function MemberUnitsPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-[var(--royal)] uppercase shadow-sm">
-                {item.category || 'Aktivitas'}
+                {getServiceProductTypeLabel(item.productType || (item.type === 'jetski' ? 'jetski' : 'other'))}
               </div>
               {item.rating && (
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">

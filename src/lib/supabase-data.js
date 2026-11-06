@@ -16,6 +16,7 @@ export function normalizeService(service) {
     rating: Number(service.rating ?? 4.5),
     reviews: Number(service.reviews ?? 0),
     available: service.available ?? true,
+    productType: service.productType ?? service.product_type ?? (service.type === 'jetski' ? 'jetski' : 'other'),
     features: Array.isArray(service.features) ? service.features : [],
     image: service.image || '/images/hero-jetski.png',
     category: service.category || 'Standard',
@@ -57,6 +58,7 @@ export async function getServicesByCategory(categorySlug) {
 export async function upsertService(service) {
   const payload = {
     type: service.type || 'activity',
+    product_type: service.productType ?? service.product_type ?? (service.type === 'jetski' ? 'jetski' : 'other'),
     name: service.name,
     slug: service.slug,
     description: service.description,
@@ -67,11 +69,12 @@ export async function upsertService(service) {
     icon: service.icon,
     category: service.category,
     features: service.features || [],
+    capacity: Number.parseInt(service.capacity, 10) || 2,
+    available: service.available !== false,
   };
 
   if (payload.type === 'jetski') {
     Object.assign(payload, {
-      capacity: Number.parseInt(service.capacity, 10) || 2,
       engine_cc: Number.parseInt(service.engineCC ?? service.engine_cc, 10) || 0,
       top_speed: service.topSpeed ?? service.top_speed ?? '',
       rating: Number(service.rating) || 4.5,

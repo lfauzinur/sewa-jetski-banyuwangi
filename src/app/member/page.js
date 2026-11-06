@@ -29,8 +29,8 @@ export default function MemberHome() {
       // Load services from Supabase
       const svcData = await getServices();
       if (svcData && svcData.length > 0) {
-        setServices(svcData.filter(s => s.type === 'jetski'));
-        setOtherServices(svcData.filter(s => s.type === 'activity'));
+        setServices(svcData.filter(s => s.type === 'jetski' && s.available !== false));
+        setOtherServices(svcData.filter(s => s.type === 'activity' && s.available !== false));
       } else {
         setServices(jetskiUnits);
         setOtherServices(fallbackServices || []);
@@ -273,7 +273,7 @@ export default function MemberHome() {
           <div className="flex justify-between items-end mb-5 pr-5">
             <div>
               <p className="text-[var(--cyan)] font-black text-[10px] tracking-widest uppercase mb-1">AKTIVITAS</p>
-              <h2 className="text-gray-900 font-extrabold text-[19px]">Layanan lainnya</h2>
+            <h2 className="text-gray-900 font-extrabold text-[19px]">Wahana lainnya</h2>
             </div>
             <Link href="/member/units" className="bg-blue-50 text-[var(--royal)] px-3 py-1.5 rounded-full text-[10px] font-bold">Lihat semua</Link>
           </div>
