@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { formatCurrency } from '@/lib/data';
 
 function BookingSuccessContent() {
   const router = useRouter();
@@ -54,13 +55,21 @@ function BookingSuccessContent() {
 
       {/* Content Area */}
       <div className="px-8 pt-16 pb-8 text-center flex-1 flex flex-col">
-        <h1 className="text-2xl font-extrabold text-[var(--royal)] mb-3">Congratulations</h1>
+        <h1 className="text-2xl font-extrabold text-[var(--royal)] mb-3">Booking Berhasil Dibuat</h1>
         
         <p className="text-gray-700 text-sm leading-relaxed mb-4">
-          Your slot has been booked for Timeslot <br/>
-          <strong className="text-gray-900">{booking.timeSlot}</strong>, On <strong className="text-gray-900">{formattedDate}</strong>, at <strong className="text-gray-900">{booking.unit.split(' ')[0] || 'Aspen'}</strong>. 
-          Go to booking tab to see full details.
+          Jadwal Anda untuk <strong className="text-gray-900">{booking.unit}</strong> pada <strong className="text-gray-900">{formattedDate}</strong>, pukul <strong className="text-gray-900">{booking.timeSlot}</strong> sudah dicatat. Admin akan memverifikasi pembayaran Anda.
         </p>
+
+        {Number(booking.depositAmount) > 0 && (
+          <div className="mx-auto mb-6 w-full max-w-sm rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-left text-xs space-y-2">
+            <div className="flex justify-between"><span className="text-gray-600">Total pesanan</span><strong>{formatCurrency(booking.totalPrice)}</strong></div>
+            <div className="flex justify-between"><span className="text-gray-600">DP {booking.depositPercent || 30}%</span><strong>{formatCurrency(booking.depositAmount)}</strong></div>
+            <div className="flex justify-between"><span className="text-gray-600">Pembayaran tercatat</span><strong>{formatCurrency(booking.amountPaid || 0)}</strong></div>
+            <div className="flex justify-between border-t border-blue-100 pt-2 font-extrabold text-[var(--royal)]"><span>Sisa setelah DP</span><span>{formatCurrency(booking.remainingAmount || 0)}</span></div>
+            <p className="pt-1 text-[10px] text-gray-500">Status: {(booking.paymentStatus || 'menunggu konfirmasi').replaceAll('_', ' ')}</p>
+          </div>
+        )}
 
         {/* Add-ons List */}
         {booking.addons && booking.addons.length > 0 && (

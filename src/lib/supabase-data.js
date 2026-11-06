@@ -1,5 +1,27 @@
 import { supabase } from './supabase';
 
+const isUuid = (value) => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+export function normalizeService(service) {
+  if (!service) return service;
+  const rawPrice = Number(service.pricePerSlot ?? service.price ?? 0);
+  const price = Number.isFinite(rawPrice) ? rawPrice : 0;
+  return {
+    ...service,
+    price,
+    pricePerSlot: price,
+    capacity: Number(service.capacity ?? service.passenger_capacity ?? 2),
+    engineCC: Number(service.engineCC ?? service.engine_cc ?? 0),
+    topSpeed: service.topSpeed ?? service.top_speed ?? '',
+    rating: Number(service.rating ?? 4.5),
+    reviews: Number(service.reviews ?? 0),
+    available: service.available ?? true,
+    features: Array.isArray(service.features) ? service.features : [],
+    image: service.image || '/images/hero-jetski.png',
+    category: service.category || 'Standard',
+  };
+}
+
 // ========================
 // SERVICES (Jetski Units + Activities)
 // ========================
@@ -9,7 +31,7 @@ export async function getServices() {
     .select('*')
     .order('created_at', { ascending: true });
   if (error) { console.error('getServices error:', error); return []; }
-  return data;
+  return (data || []).map(normalizeService);
 }
 
 export async function getServicesByType(type) {
@@ -18,8 +40,8 @@ export async function getServicesByType(type) {
     .select('*')
     .eq('type', type)
     .order('created_at', { ascending: true });
-  if (error) { console.error('getServicesByType error:', error); return []; }
-  return data;
+  if (error) { console.error('getServicesByType error:', error); throw new Error(error.message || 'Gagal memuat unit dari Supabase.'); }
+  return (data || []).map(normalizeService);
 }
 
 export async function getServicesByCategory(categorySlug) {
@@ -29,7 +51,7 @@ export async function getServicesByCategory(categorySlug) {
     .eq('category', categorySlug)
     .order('created_at', { ascending: true });
   if (error) { console.error('getServicesByCategory error:', error); return []; }
-  return data;
+  return (data || []).map(normalizeService);
 }
 
 export async function upsertService(service) {
@@ -39,7 +61,7 @@ export async function upsertService(service) {
     slug: service.slug,
     description: service.description,
     details: service.details,
-    price: parseInt(service.price) || 0,
+    price: Number.parseInt(service.pricePerSlot ?? service.price, 10) || 0,
     duration: service.duration,
     image: service.image,
     icon: service.icon,
@@ -47,7 +69,18 @@ export async function upsertService(service) {
     features: service.features || [],
   };
 
-  if (service.id && typeof service.id === 'string' && service.id.includes('-')) {
+  if (payload.type === 'jetski') {
+    Object.assign(payload, {
+      capacity: Number.parseInt(service.capacity, 10) || 2,
+      engine_cc: Number.parseInt(service.engineCC ?? service.engine_cc, 10) || 0,
+      top_speed: service.topSpeed ?? service.top_speed ?? '',
+      rating: Number(service.rating) || 4.5,
+      reviews: Number.parseInt(service.reviews, 10) || 0,
+      available: service.available !== false,
+    });
+  }
+
+  if (isUuid(service.id)) {
     // It's a UUID, update existing
     const { data, error } = await supabase
       .from('services')
@@ -55,8 +88,8 @@ export async function upsertService(service) {
       .eq('id', service.id)
       .select()
       .single();
-    if (error) { console.error('updateService error:', error); return null; }
-    return data;
+    if (error) { console.error('updateService error:', error); throw new Error(error.message || 'Gagal memperbarui unit.'); }
+    return normalizeService(data);
   } else {
     // Insert new
     const { data, error } = await supabase
@@ -64,8 +97,8 @@ export async function upsertService(service) {
       .insert(payload)
       .select()
       .single();
-    if (error) { console.error('insertService error:', error); return null; }
-    return data;
+    if (error) { console.error('insertService error:', error); throw new Error(error.message || 'Gagal menambahkan unit.'); }
+    return normalizeService(data);
   }
 }
 
@@ -95,7 +128,7 @@ export async function upsertCategory(cat) {
     image: cat.image,
   };
 
-  if (cat.id && typeof cat.id === 'string' && cat.id.includes('-')) {
+  if (isUuid(cat.id)) {
     const { data, error } = await supabase
       .from('categories')
       .update(payload)
@@ -155,7 +188,7 @@ export async function upsertArticle(article) {
     read_time: article.readTime || article.read_time,
   };
 
-  if (article.id && typeof article.id === 'string' && article.id.includes('-')) {
+  if (isUuid(article.id)) {
     const { data, error } = await supabase
       .from('articles')
       .update(payload)
@@ -202,7 +235,7 @@ export async function upsertPromo(promo) {
     icon: promo.icon,
   };
 
-  if (promo.id && typeof promo.id === 'string' && promo.id.includes('-')) {
+  if (isUuid(promo.id)) {
     const { data, error } = await supabase
       .from('promos')
       .update(payload)
@@ -323,7 +356,7 @@ export async function upsertAddon(addon) {
   let savedData = null;
 
   try {
-    if (addon.id && typeof addon.id === 'string' && addon.id.includes('-') && !addon.id.startsWith('addon-')) {
+    if (isUuid(addon.id)) {
       const { data, error } = await supabase.from('addons').update(payload).eq('id', addon.id).select().single();
       if (!error && data) savedData = data;
       else if (error) console.warn('Supabase updateAddon error (falling back to local):', error);
@@ -533,7 +566,7 @@ export async function upsertLoyaltyReward(reward) {
   let savedData = null;
 
   try {
-    if (reward.id && typeof reward.id === 'string' && reward.id.includes('-') && !reward.id.startsWith('reward-')) {
+    if (isUuid(reward.id)) {
       const { data, error } = await supabase.from('loyalty_rewards').update(payload).eq('id', reward.id).select().single();
       if (!error && data) savedData = data;
     } else {
@@ -710,7 +743,7 @@ export async function upsertGpsRoute(route) {
   let savedData = null;
 
   try {
-    if (route.id && typeof route.id === 'string' && route.id.includes('-') && !route.id.startsWith('route-')) {
+    if (isUuid(route.id)) {
       const { data, error } = await supabase.from('gps_routes').update(payload).eq('id', route.id).select().single();
       if (!error && data) savedData = data;
     } else {
@@ -787,7 +820,7 @@ export async function upsertGpsGeofence(geofence) {
     active: geofence.active !== false
   };
 
-  if (geofence.id && typeof geofence.id === 'string' && geofence.id.includes('-')) {
+  if (isUuid(geofence.id)) {
     const { data, error } = await supabase.from('gps_geofences').update(payload).eq('id', geofence.id).select().single();
     if (error) console.error('updateGpsGeofence error:', error); return data;
   } else {
@@ -828,7 +861,7 @@ export async function getBasecamps() {
     .from('basecamps')
     .select('*')
     .order('created_at', { ascending: true });
-  if (error) { console.error('getBasecamps error:', error); return []; }
+  if (error) { console.error('getBasecamps error:', error); throw new Error(error.message || 'Gagal memuat basecamp.'); }
   return data;
 }
 
@@ -843,21 +876,23 @@ export async function getActiveBasecamps() {
 }
 
 export async function createBasecamp(payload) {
-  const { data, error } = await supabase.from('basecamps').insert(payload).select();
-  if (error) console.error('createBasecamp error:', error);
-  return data?.[0] || null;
+  const { data, error } = await supabase.from('basecamps').insert(payload).select().single();
+  if (error) { console.error('createBasecamp error:', error); throw new Error(error.message || 'Gagal menambahkan basecamp.'); }
+  if (!data) throw new Error('Basecamp tidak tersimpan. Periksa konfigurasi database.');
+  return data;
 }
 
 export async function updateBasecamp(id, payload) {
-  const { data, error } = await supabase.from('basecamps').update(payload).eq('id', id).select();
-  if (error) console.error('updateBasecamp error:', error);
-  return data?.[0] || null;
+  const { data, error } = await supabase.from('basecamps').update(payload).eq('id', id).select().single();
+  if (error) { console.error('updateBasecamp error:', error); throw new Error(error.message || 'Gagal memperbarui basecamp.'); }
+  if (!data) throw new Error('Basecamp tidak ditemukan. Muat ulang daftar dan coba lagi.');
+  return data;
 }
 
 export async function deleteBasecamp(id) {
   const { error } = await supabase.from('basecamps').delete().eq('id', id);
-  if (error) console.error('deleteBasecamp error:', error);
-  return !error;
+  if (error) { console.error('deleteBasecamp error:', error); throw new Error(error.message || 'Gagal menghapus basecamp.'); }
+  return true;
 }
 
 // ==============================================================================

@@ -1,23 +1,40 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Wallet, Building2, QrCode, Copy, CheckCircle2, ChevronRight, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/data';
 import { getUserLoyalty, getLoyaltyRewards, redeemLoyaltyPoints, addLoyaltyPoints } from '@/lib/supabase-data';
+import { calculateDepositAmount, DEFAULT_DEPOSIT_PERCENT } from '@/lib/booking-payments';
 
 function PaymentContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isBalancePayment = searchParams.get('type') === 'balance';
+  const existingBookingId = searchParams.get('id');
   const [booking, setBooking] = useState(null);
   const [method, setMethod] = useState('transfer'); // 'transfer' or 'qris'
+  const [paymentPlan, setPaymentPlan] = useState('dp');
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [loyalty, setLoyalty] = useState({ points_balance: 0 });
   const [rewards, setRewards] = useState([]);
   const [selectedReward, setSelectedReward] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
+  const [paymentError, setPaymentError] = useState('');
 
   useEffect(() => {
+    if (isBalancePayment) {
+      const bookings = JSON.parse(localStorage.getItem('admin_bookings') || '[]');
+      const existingBooking = bookings.find((item) => item.id === existingBookingId);
+      if (!existingBooking || Number(existingBooking.remainingAmount) <= 0 || existingBooking.paymentStatus !== 'dp_confirmed') {
+        router.push('/member/bookings');
+        return;
+      }
+      setBooking(existingBooking);
+      return;
+    }
+
     const checkoutData = localStorage.getItem('current_checkout');
     if (!checkoutData) {
       router.push('/member');
@@ -36,7 +53,7 @@ function PaymentContent() {
       setRewards(r);
     };
     loadLoyalty();
-  }, [router]);
+  }, [router, isBalancePayment, existingBookingId]);
 
   if (!booking) return null;
 
@@ -48,39 +65,65 @@ function PaymentContent() {
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
-    
-    // Process reward redemption if selected
-    let rewardApplied = null;
-    if (selectedReward && currentUser) {
-      const r = rewards.find(rw => rw.id === selectedReward);
-      if (r) {
-        rewardApplied = r;
-        await redeemLoyaltyPoints(currentUser.id, r.points_required, `Redeem: ${r.name}`, booking.id);
-      }
-    }
 
-    // Process earning points (e.g. 1 point for every Rp 50,000 spent)
-    if (currentUser) {
-      const earnPoints = Math.floor(finalPrice / 50000);
-      if (earnPoints > 0) {
-        await addLoyaltyPoints(currentUser.id, earnPoints, `Earn points from booking ${booking.unit}`, booking.id);
+    try {
+      const bookings = JSON.parse(localStorage.getItem('admin_bookings') || '[]');
+      if (isBalancePayment) {
+        const remainingAmount = Number(booking.remainingAmount) || 0;
+        const updated = bookings.map((item) => item.id === booking.id ? {
+          ...item,
+          amountPaid: (Number(item.amountPaid) || 0) + remainingAmount,
+          remainingAmount: 0,
+          lastPaymentAmount: remainingAmount,
+          paymentMethod: method,
+          paymentStatus: 'balance_waiting_confirmation',
+          status: 'waiting_confirmation',
+          payments: [...(item.payments || []), { amount: remainingAmount, method, type: 'balance', status: 'waiting_confirmation', createdAt: new Date().toISOString() }],
+        } : item);
+        localStorage.setItem('admin_bookings', JSON.stringify(updated));
+        router.push(`/member/booking/success?id=${booking.id}`);
+        return;
       }
-    }
 
-    setTimeout(() => {
-      // Move from checkout to bookings
-      const existing = JSON.parse(localStorage.getItem('admin_bookings') || '[]');
-      const finalBooking = { 
+      let rewardApplied = null;
+      if (selectedReward && currentUser) {
+        const reward = rewards.find((item) => item.id === selectedReward);
+        if (reward) {
+          rewardApplied = reward;
+          await redeemLoyaltyPoints(currentUser.id, reward.points_required, `Redeem: ${reward.name}`, booking.id);
+        }
+      }
+
+      if (currentUser && paymentPlan === 'full') {
+        const earnPoints = Math.floor(finalPrice / 50000);
+        if (earnPoints > 0) await addLoyaltyPoints(currentUser.id, earnPoints, `Earn points from booking ${booking.unit}`, booking.id);
+      }
+
+      const depositAmount = calculateDepositAmount(finalPrice);
+      const amountDueNow = paymentPlan === 'dp' ? depositAmount : finalPrice;
+      const now = new Date().toISOString();
+      const finalBooking = {
         ...booking, 
         totalPrice: finalPrice,
+        paymentPlan,
+        depositPercent: DEFAULT_DEPOSIT_PERCENT,
+        depositAmount: paymentPlan === 'dp' ? depositAmount : 0,
+        amountPaid: amountDueNow,
+        remainingAmount: Math.max(0, finalPrice - amountDueNow),
+        lastPaymentAmount: amountDueNow,
+        paymentMethod: method,
+        paymentStatus: paymentPlan === 'dp' ? 'dp_waiting_confirmation' : 'payment_waiting_confirmation',
+        payments: [...(booking.payments || []), { amount: amountDueNow, method, type: paymentPlan, status: 'waiting_confirmation', createdAt: now }],
         reward_applied: rewardApplied ? rewardApplied.name : null,
-        status: 'waiting_confirmation' 
+        status: 'waiting_confirmation',
       };
-      localStorage.setItem('admin_bookings', JSON.stringify([finalBooking, ...existing]));
+      localStorage.setItem('admin_bookings', JSON.stringify([finalBooking, ...bookings.filter((item) => item.id !== booking.id)]));
       localStorage.removeItem('current_checkout');
-      
       router.push(`/member/booking/success?id=${booking.id}`);
-    }, 1500);
+    } catch (error) {
+      setPaymentError(`Pembayaran gagal diproses: ${error.message}`);
+      setIsProcessing(false);
+    }
   };
 
   const getActiveReward = () => {
@@ -91,6 +134,8 @@ function PaymentContent() {
   const activeReward = getActiveReward();
   const discountAmount = activeReward && activeReward.type === 'discount' ? activeReward.value : 0;
   const finalPrice = Math.max(0, booking.totalPrice - discountAmount);
+  const depositAmount = calculateDepositAmount(finalPrice);
+  const amountDueNow = isBalancePayment ? Number(booking.remainingAmount) || 0 : paymentPlan === 'dp' ? depositAmount : finalPrice;
 
   return (
     <div className="bg-gray-50 min-h-screen pb-24">
@@ -106,14 +151,14 @@ function PaymentContent() {
         
         {/* Total Highlight */}
         <div className="bg-white rounded-[24px] p-6 shadow-sm text-center border border-gray-100">
-          <p className="text-gray-500 text-sm font-semibold mb-2">Total Pembayaran</p>
+          <p className="text-gray-500 text-sm font-semibold mb-2">{isBalancePayment ? 'Bayar Pelunasan' : 'Bayar Sekarang'}</p>
           <h2 className="text-4xl font-black text-[var(--royal)] mb-2 tracking-tight">
-            Rp {finalPrice.toLocaleString('id-ID')}
+            {formatCurrency(amountDueNow)}
           </h2>
           <div className="inline-flex flex-col gap-2 items-center text-left">
             <div className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-xs font-bold">
               <AlertCircle size={14} />
-              Termasuk kode unik *{booking.uniqueCode} untuk verifikasi
+              Transfer sesuai nominal yang tertera
             </div>
             {discountAmount > 0 && (
               <div className="text-emerald-500 text-sm font-bold mt-1">
@@ -144,8 +189,37 @@ function PaymentContent() {
                 ))}
               </div>
             )}
+            <div className="flex justify-between border-t border-gray-100 pt-2 font-bold text-gray-800">
+              <span>Total pesanan</span><span>{formatCurrency(finalPrice)}</span>
+            </div>
+            {isBalancePayment ? (
+              <div className="flex justify-between font-bold text-amber-700"><span>Sisa pelunasan</span><span>{formatCurrency(amountDueNow)}</span></div>
+            ) : paymentPlan === 'dp' ? (
+              <>
+                <div className="flex justify-between font-bold text-[var(--royal)]"><span>DP {DEFAULT_DEPOSIT_PERCENT}%</span><span>{formatCurrency(depositAmount)}</span></div>
+                <div className="flex justify-between text-gray-500"><span>Sisa setelah DP</span><span>{formatCurrency(Math.max(0, finalPrice - depositAmount))}</span></div>
+              </>
+            ) : <div className="flex justify-between font-bold text-emerald-700"><span>Bayar lunas</span><span>{formatCurrency(finalPrice)}</span></div>}
           </div>
         </div>
+
+        {!isBalancePayment && (
+          <div>
+            <h3 className="font-bold text-gray-900 text-base mb-3 px-1">Pilih Pembayaran</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setPaymentPlan('dp')} className={`rounded-2xl border-2 p-4 text-left transition-all ${paymentPlan === 'dp' ? 'border-[var(--royal)] bg-blue-50/60' : 'border-gray-100 bg-white'}`}>
+                <span className="block text-sm font-extrabold text-gray-900">DP {DEFAULT_DEPOSIT_PERCENT}%</span>
+                <span className="mt-1 block text-xs font-bold text-[var(--royal)]">{formatCurrency(depositAmount)}</span>
+                <span className="mt-1 block text-[10px] leading-relaxed text-gray-500">Sisa dibayar setelah DP dikonfirmasi.</span>
+              </button>
+              <button type="button" onClick={() => setPaymentPlan('full')} className={`rounded-2xl border-2 p-4 text-left transition-all ${paymentPlan === 'full' ? 'border-[var(--royal)] bg-blue-50/60' : 'border-gray-100 bg-white'}`}>
+                <span className="block text-sm font-extrabold text-gray-900">Bayar Lunas</span>
+                <span className="mt-1 block text-xs font-bold text-[var(--royal)]">{formatCurrency(finalPrice)}</span>
+                <span className="mt-1 block text-[10px] leading-relaxed text-gray-500">Tidak ada sisa pembayaran.</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Loyalty Reward Selection */}
         {currentUser && rewards.length > 0 && (
@@ -233,7 +307,7 @@ function PaymentContent() {
                 </button>
               </div>
               <ul className="text-xs text-gray-500 space-y-2 list-disc pl-4">
-                <li>Pastikan nominal transfer <strong className="text-gray-900">tepat hingga 3 digit terakhir</strong>.</li>
+                <li>Pastikan nominal transfer <strong className="text-gray-900">sesuai jumlah pembayaran di atas</strong>.</li>
                 <li>Transfer dari bank lain mungkin dikenakan biaya admin.</li>
                 <li>Simpan bukti transfer Anda.</li>
               </ul>
@@ -257,7 +331,7 @@ function PaymentContent() {
               <ul className="text-xs text-gray-500 space-y-2 list-disc pl-4 text-left">
                 <li>Buka aplikasi m-banking atau e-wallet Anda.</li>
                 <li>Pilih menu scan QRIS.</li>
-                <li>Pastikan nominal tepat <strong className="text-gray-900">Rp {finalPrice.toLocaleString('id-ID')}</strong>.</li>
+                <li>Pastikan nominal tepat <strong className="text-gray-900">{formatCurrency(amountDueNow)}</strong>.</li>
               </ul>
             </div>
           )}
@@ -266,12 +340,13 @@ function PaymentContent() {
 
       {/* Floating Action */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-safe z-40 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] sm:w-[400px] sm:left-1/2 sm:-ml-[200px] sm:absolute sm:rounded-b-[40px] sm:border-none">
+        {paymentError && <p role="alert" className="mb-2 rounded-lg bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">{paymentError}</p>}
         <button
           onClick={handleConfirmPayment}
           disabled={isProcessing}
           className="w-full bg-[var(--royal)] text-white py-4 rounded-xl font-bold text-sm shadow-[var(--shadow-royal)] disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 transition-all"
         >
-          {isProcessing ? 'Memproses...' : 'Saya Sudah Bayar'}
+          {isProcessing ? 'Memproses...' : isBalancePayment ? 'Saya Sudah Bayar Pelunasan' : paymentPlan === 'dp' ? `Saya Sudah Bayar DP ${formatCurrency(depositAmount)}` : 'Saya Sudah Bayar Lunas'}
         </button>
       </div>
     </div>

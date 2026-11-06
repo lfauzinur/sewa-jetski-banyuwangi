@@ -81,7 +81,9 @@ export default function MemberBookings() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="font-mono font-bold text-xs text-gray-400">{booking.id}</span>
-                      {activeTab === 'upcoming' && <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Confirmed</span>}
+                      {booking.status === 'waiting_confirmation' && <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Menunggu Konfirmasi</span>}
+                      {booking.status === 'confirmed' && <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Dikonfirmasi</span>}
+                      {booking.status === 'cancelled' && <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Dibatalkan</span>}
                     </div>
                     <h3 className="font-extrabold text-gray-900 text-sm leading-tight">{booking.unit}</h3>
                     <div className="flex flex-col gap-1 mt-2 text-xs text-gray-600 font-medium">
@@ -102,6 +104,14 @@ export default function MemberBookings() {
                         </div>
                       </div>
                     )}
+                    {Number(booking.depositAmount) > 0 && (
+                      <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/70 p-3 text-xs space-y-1">
+                        <div className="flex justify-between text-gray-600"><span>DP {booking.depositPercent || 30}%</span><strong>{formatCurrency(booking.depositAmount)}</strong></div>
+                        <div className="flex justify-between text-gray-600"><span>Sudah dibayar</span><strong>{formatCurrency(booking.amountPaid || 0)}</strong></div>
+                        <div className="flex justify-between font-extrabold text-[var(--royal)]"><span>Sisa</span><span>{formatCurrency(booking.remainingAmount || 0)}</span></div>
+                        <p className="pt-1 text-[10px] text-gray-500">Status pembayaran: {(booking.paymentStatus || 'menunggu konfirmasi').replaceAll('_', ' ')}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -111,9 +121,16 @@ export default function MemberBookings() {
                     <span className="font-extrabold text-[var(--royal)] text-base leading-none">{formatCurrency(booking.totalPrice)}</span>
                   </div>
                   {activeTab === 'upcoming' && (
-                    <Link href={`/member/booking/success?id=${booking.id}`} className="flex items-center gap-1 text-[11px] font-bold text-[var(--royal)] bg-[var(--royal-soft)] hover:bg-[var(--royal)] hover:text-white px-3 py-1.5 rounded-lg transition-colors">
-                      Lihat Tiket <ChevronRight size={14} />
-                    </Link>
+                    <div className="flex gap-2">
+                      {booking.paymentStatus === 'dp_confirmed' && Number(booking.remainingAmount) > 0 && (
+                        <Link href={`/member/booking/payment?id=${encodeURIComponent(booking.id)}&type=balance`} className="flex items-center gap-1 text-[11px] font-bold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition-colors">
+                          Bayar Pelunasan <ChevronRight size={14} />
+                        </Link>
+                      )}
+                      <Link href={`/member/booking/success?id=${booking.id}`} className="flex items-center gap-1 text-[11px] font-bold text-[var(--royal)] bg-[var(--royal-soft)] hover:bg-[var(--royal)] hover:text-white px-3 py-1.5 rounded-lg transition-colors">
+                        Lihat Tiket <ChevronRight size={14} />
+                      </Link>
+                    </div>
                   )}
                 </div>
               </div>

@@ -8,6 +8,8 @@ export default function AdminBasecampsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     name: '', address: '', phone: '', operating_hours: '06:00 - 17:00 WIB',
     lat: '', lng: '', maps_url: '', active: true
@@ -17,9 +19,15 @@ export default function AdminBasecampsPage() {
 
   async function loadData() {
     setIsLoading(true);
-    const data = await getBasecamps();
-    setBasecamps(data);
-    setIsLoading(false);
+    try {
+      const data = await getBasecamps();
+      setBasecamps(data || []);
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage(`Gagal memuat basecamp: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function resetForm() {
@@ -40,26 +48,45 @@ export default function AdminBasecampsPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const payload = { ...form, lat: parseFloat(form.lat), lng: parseFloat(form.lng) };
-    
-    if (editingId) {
-      await updateBasecamp(editingId, payload);
-    } else {
-      await createBasecamp(payload);
+    const lat = Number(form.lat);
+    const lng = Number(form.lng);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lng) || lng < -180 || lng > 180) {
+      setErrorMessage('Latitude harus antara -90 sampai 90 dan longitude antara -180 sampai 180.');
+      return;
     }
-    resetForm();
-    loadData();
+
+    setIsSaving(true);
+    setErrorMessage('');
+    try {
+      const payload = { ...form, lat, lng, name: form.name.trim(), address: form.address.trim() };
+      if (editingId) await updateBasecamp(editingId, payload);
+      else await createBasecamp(payload);
+      resetForm();
+      await loadData();
+    } catch (error) {
+      setErrorMessage(`Basecamp gagal disimpan: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function handleDelete(id) {
     if (!confirm('Yakin ingin menghapus basecamp ini?')) return;
-    await deleteBasecamp(id);
-    loadData();
+    try {
+      await deleteBasecamp(id);
+      await loadData();
+    } catch (error) {
+      setErrorMessage(`Basecamp gagal dihapus: ${error.message}`);
+    }
   }
 
   async function handleToggleActive(bc) {
-    await updateBasecamp(bc.id, { active: !bc.active });
-    loadData();
+    try {
+      await updateBasecamp(bc.id, { active: !bc.active });
+      await loadData();
+    } catch (error) {
+      setErrorMessage(`Status basecamp gagal diperbarui: ${error.message}`);
+    }
   }
 
   return (
@@ -70,13 +97,15 @@ export default function AdminBasecampsPage() {
           <p className="text-gray-500 text-sm mt-1">Atur lokasi basecamp penyewaan jetski Anda.</p>
         </div>
         <button 
-          onClick={() => { resetForm(); setShowForm(true); }}
+          onClick={() => { resetForm(); setErrorMessage(''); setShowForm(true); }}
           className="bg-[var(--royal)] text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-md"
         >
           <Plus size={18} />
           Tambah Basecamp
         </button>
       </div>
+
+      {errorMessage && !showForm && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">{errorMessage}</div>}
 
       {/* Form Modal */}
       {showForm && (
@@ -88,6 +117,8 @@ export default function AdminBasecampsPage() {
                 <X size={16} />
               </button>
             </div>
+
+            {errorMessage && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800">{errorMessage}</div>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -134,9 +165,9 @@ export default function AdminBasecampsPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   placeholder="https://maps.google.com/?q=..." />
               </div>
-              <button type="submit" className="w-full bg-[var(--royal)] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors mt-2">
+              <button type="submit" disabled={isSaving} className="w-full bg-[var(--royal)] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors mt-2 disabled:opacity-60">
                 <Save size={18} />
-                {editingId ? 'Simpan Perubahan' : 'Tambah Basecamp'}
+                {isSaving ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Basecamp'}
               </button>
             </form>
           </div>
@@ -149,11 +180,13 @@ export default function AdminBasecampsPage() {
           <div className="bg-white h-28 rounded-2xl animate-pulse" />
           <div className="bg-white h-28 rounded-2xl animate-pulse" />
         </div>
+      ) : basecamps.length === 0 && errorMessage ? (
+        <div role="alert" className="bg-white rounded-2xl p-8 text-center border border-rose-100 text-sm text-rose-700">Data basecamp belum dapat dimuat. Periksa koneksi, tabel, dan izin Supabase lalu coba muat ulang.</div>
       ) : basecamps.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
           <MapPin size={48} className="text-gray-300 mx-auto mb-4" />
           <p className="font-bold text-gray-500">Belum ada basecamp.</p>
-          <p className="text-gray-400 text-sm mt-1">Klik tombol "Tambah Basecamp" untuk menambahkan.</p>
+          <p className="text-gray-400 text-sm mt-1">Klik tombol &quot;Tambah Basecamp&quot; untuk menambahkan.</p>
         </div>
       ) : (
         <div className="space-y-4">

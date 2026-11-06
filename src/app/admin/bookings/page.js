@@ -45,10 +45,28 @@ export default function AdminBookings() {
   };
 
   const updateStatus = (bookingId, newStatus) => {
-    const updated = bookings.map(b => b.id === bookingId ? { ...b, status: newStatus } : b);
+    const target = bookings.find((booking) => booking.id === bookingId);
+    const paymentUpdate = {};
+    if (target && newStatus === 'confirmed') {
+      if (target.paymentStatus === 'balance_waiting_confirmation') {
+        paymentUpdate.paymentStatus = 'paid';
+        paymentUpdate.amountPaid = Number(target.totalPrice) || Number(target.amountPaid) || 0;
+        paymentUpdate.remainingAmount = 0;
+      } else if (Number(target.remainingAmount) > 0) {
+        paymentUpdate.paymentStatus = 'dp_confirmed';
+      } else if (Number(target.amountPaid) > 0 || target.paymentPlan === 'full') {
+        paymentUpdate.paymentStatus = 'paid';
+        paymentUpdate.amountPaid = Number(target.totalPrice) || Number(target.amountPaid) || 0;
+        paymentUpdate.remainingAmount = 0;
+      }
+    } else if (newStatus === 'cancelled') {
+      paymentUpdate.paymentStatus = 'cancelled';
+    }
+
+    const updated = bookings.map(b => b.id === bookingId ? { ...b, ...paymentUpdate, status: newStatus } : b);
     saveBookings(updated);
     if (selectedBooking?.id === bookingId) {
-      setSelectedBooking({ ...selectedBooking, status: newStatus });
+      setSelectedBooking(updated.find((booking) => booking.id === bookingId));
     }
     showToast(`✓ Status booking ${bookingId} diperbarui: ${newStatus.toUpperCase()}`);
   };
@@ -70,6 +88,10 @@ export default function AdminBookings() {
       'Tanggal',
       'Waktu',
       'Total Harga (Rp)',
+      'DP (Rp)',
+      'Sudah Dibayar (Rp)',
+      'Sisa Pembayaran (Rp)',
+      'Status Pembayaran',
       'Status'
     ];
 
@@ -89,6 +111,10 @@ export default function AdminBookings() {
         `"${b.date || ''}"`,
         `"${b.timeSlot || ''}"`,
         `"${b.totalPrice || 0}"`,
+        `"${b.depositAmount || 0}"`,
+        `"${b.amountPaid || 0}"`,
+        `"${b.remainingAmount || 0}"`,
+        `"${(b.paymentStatus || 'legacy').replace(/"/g, '""')}"`,
         `"${(b.status || '').toUpperCase()}"`
       ].join(',');
     });
@@ -108,7 +134,7 @@ export default function AdminBookings() {
   };
 
   const filtered = bookings.filter(b => {
-    const matchStatus = filter === 'all' || b.status === filter;
+    const matchStatus = filter === 'all' || b.status === filter || (filter === 'pending' && b.status === 'waiting_confirmation');
     const matchSearch = (b.customerName || '').toLowerCase().includes(search.toLowerCase()) || 
                         (b.id || '').toLowerCase().includes(search.toLowerCase()) ||
                         (b.unit || '').toLowerCase().includes(search.toLowerCase());
@@ -120,7 +146,10 @@ export default function AdminBookings() {
     pending: bookings.filter(b => b.status === 'pending' || b.status === 'waiting_confirmation').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     completed: bookings.filter(b => b.status === 'completed').length,
-    revenue: bookings.filter(b => b.status !== 'cancelled').reduce((acc, b) => acc + (b.totalPrice || 0), 0),
+    revenue: bookings.filter(b => b.status !== 'cancelled').reduce((acc, b) => {
+      if (Number.isFinite(Number(b.amountPaid))) return acc + Number(b.amountPaid);
+      return acc + (['confirmed', 'completed'].includes(b.status) ? Number(b.totalPrice) || 0 : 0);
+    }, 0),
   };
 
   return (
@@ -200,7 +229,7 @@ export default function AdminBookings() {
                 <th className="px-6 py-4">Pelanggan</th>
                 <th className="px-6 py-4">Unit & Add-ons</th>
                 <th className="px-6 py-4">Jadwal</th>
-                <th className="px-6 py-4">Total</th>
+                <th className="px-6 py-4">Total / DP / Sisa</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Aksi</th>
               </tr>
@@ -240,7 +269,11 @@ export default function AdminBookings() {
                     <div className="text-xs text-gray-500">{booking.timeSlot}</div>
                   </td>
                   <td className="px-6 py-4 font-bold text-gray-900">
-                    {formatCurrency(booking.totalPrice)}
+                    <div>{formatCurrency(booking.totalPrice)}</div>
+                    {Number(booking.depositAmount) > 0 && <div className="mt-1 space-y-0.5 text-[10px] font-medium text-gray-500">
+                      <div>DP: {formatCurrency(booking.depositAmount)} · Dibayar: {formatCurrency(booking.amountPaid || 0)}</div>
+                      <div>Sisa: {formatCurrency(booking.remainingAmount || 0)}</div>
+                    </div>}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${STATUS_COLORS[booking.status] || 'bg-gray-100 text-gray-600'}`}>
@@ -261,7 +294,7 @@ export default function AdminBookings() {
                           <button 
                             onClick={() => updateStatus(booking.id, 'confirmed')} 
                             className="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-500 cursor-pointer" 
-                            title="Konfirmasi Booking"
+                            title={booking.paymentStatus === 'balance_waiting_confirmation' ? 'Konfirmasi Pelunasan' : Number(booking.remainingAmount) > 0 ? 'Konfirmasi DP' : 'Konfirmasi Pembayaran'}
                           >
                             <CheckCircle size={16} />
                           </button>
@@ -274,7 +307,10 @@ export default function AdminBookings() {
                           </button>
                         </>
                       )}
-                      {booking.status === 'confirmed' && (
+                      {booking.status === 'confirmed' && Number(booking.remainingAmount) > 0 && (
+                        <span className="text-[10px] font-semibold text-amber-700">Menunggu pelunasan</span>
+                      )}
+                      {booking.status === 'confirmed' && Number(booking.remainingAmount) <= 0 && (
                         <button 
                           onClick={() => updateStatus(booking.id, 'completed')} 
                           className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500 cursor-pointer" 
@@ -289,7 +325,7 @@ export default function AdminBookings() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+              <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     Tidak ada data booking ditemukan.
                   </td>
                 </tr>
@@ -320,6 +356,8 @@ export default function AdminBookings() {
                 ['Lokasi Basecamp', selectedBooking.location || 'Pantai Boom'],
                 ['Tanggal', new Date(selectedBooking.date).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
                 ['Jadwal Waktu', selectedBooking.timeSlot],
+                ['Paket Pembayaran', selectedBooking.paymentPlan === 'dp' ? `DP ${selectedBooking.depositPercent || 30}%` : selectedBooking.paymentPlan === 'full' ? 'Lunas' : '-'],
+                ['Status Pembayaran', (selectedBooking.paymentStatus || 'legacy').replaceAll('_', ' ')],
               ].map(([label, val]) => (
                 <div key={label} className="flex justify-between py-1.5 border-b border-gray-50">
                   <span className="text-gray-500 text-xs">{label}</span>
@@ -351,6 +389,11 @@ export default function AdminBookings() {
                   {formatCurrency(selectedBooking.totalPrice)}
                 </span>
               </div>
+              {Number(selectedBooking.depositAmount) > 0 && <div className="space-y-1 rounded-xl border border-amber-100 bg-amber-50/70 p-3 text-xs">
+                <div className="flex justify-between"><span>DP</span><strong>{formatCurrency(selectedBooking.depositAmount)}</strong></div>
+                <div className="flex justify-between"><span>Sudah dibayar</span><strong>{formatCurrency(selectedBooking.amountPaid || 0)}</strong></div>
+                <div className="flex justify-between font-extrabold text-amber-800"><span>Sisa pembayaran</span><strong>{formatCurrency(selectedBooking.remainingAmount || 0)}</strong></div>
+              </div>}
 
               {/* Status */}
               <div className="flex justify-between items-center py-2">
@@ -364,11 +407,12 @@ export default function AdminBookings() {
             <div className="flex gap-2 pt-2">
               {(selectedBooking.status === 'pending' || selectedBooking.status === 'waiting_confirmation') && (
                 <>
-                  <button onClick={() => updateStatus(selectedBooking.id, 'confirmed')} className="flex-1 btn btn-cyan py-2.5 text-xs font-bold cursor-pointer">Konfirmasi</button>
+                  <button onClick={() => updateStatus(selectedBooking.id, 'confirmed')} className="flex-1 btn btn-cyan py-2.5 text-xs font-bold cursor-pointer">{selectedBooking.paymentStatus === 'balance_waiting_confirmation' ? 'Konfirmasi Pelunasan' : Number(selectedBooking.remainingAmount) > 0 ? 'Konfirmasi DP' : 'Konfirmasi Pembayaran'}</button>
                   <button onClick={() => updateStatus(selectedBooking.id, 'cancelled')} className="flex-1 px-4 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-bold hover:bg-rose-600 cursor-pointer">Tolak</button>
                 </>
               )}
-              {selectedBooking.status === 'confirmed' && (
+              {selectedBooking.status === 'confirmed' && Number(selectedBooking.remainingAmount) > 0 && <p className="flex-1 self-center text-center text-xs font-semibold text-amber-700">Menunggu pelunasan dari pelanggan.</p>}
+              {selectedBooking.status === 'confirmed' && Number(selectedBooking.remainingAmount) <= 0 && (
                 <button onClick={() => updateStatus(selectedBooking.id, 'completed')} className="flex-1 btn btn-cyan py-2.5 text-xs font-bold cursor-pointer">Tandai Selesai</button>
               )}
               <button onClick={() => setSelectedBooking(null)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 cursor-pointer">Tutup</button>
